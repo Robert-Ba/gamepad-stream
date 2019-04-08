@@ -1,11 +1,18 @@
+body {
+    display: flex;
+    margin: 0;
+    min-height: 100vh;
+    flex-direction: column;
+}
+
 .main-menu-container {
-    background-color: paleturquoise;
-    width: 100%;
-    height: 690px;
+    background-color: ghostwhite;
+    flex: 1;
+    height: 100%;
 }
 
 .menu-buttons-container {
-    width: 45%;
+    width: 550px;
     display: flex;
     justify-content: space-between;
     margin-left: auto;
@@ -13,7 +20,7 @@
     padding-top: 250px;
 }
 
-.menu-buttons-container > button {
+.menu-buttons-container button {
     border: 1px solid black;
     font-size: 20pt;
     background-color: white;
@@ -24,8 +31,25 @@
     cursor: pointer;
 }
 
-.menu-buttons-container > button:hover {
+.menu-buttons-container button:hover {
     background-color: black;
     border-color: white;
     color: white;
+}
+
+#join-stream-form {
+    top: 200px;
+    margin: auto;
+    width: 40%;
+    border-right: 2px solid black;
+    padding: 10px 20px;
+}
+
+#join-stream-form button {
+    width: 100%;
+}
+
+.input-group {
+    margin-bottom: 5px;
+    position: relative
 }

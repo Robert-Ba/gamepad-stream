@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>StreamService</title>
+    <script>
+            if (typeof module === 'object') {window.module = module; module = undefined;}
+    </script>
+    <script src="./node_modules/jquery/dist/jquery.slim.min.js"></script>
+</head>
+<body>
+    <p>Stream is active.</p>
+    <button id="stop-stream">Stop streaming</button>
+    <script type="text/javascript">
+        const electron = require('electron');
+        const { ipcRenderer } = electron;
+
+        $(document).ready(function () {
+            $('#stop-stream').click(stopStream);
+        });
+
+        function stopStream(e) {
+            e.preventDefault();
+
+            ipcRenderer.send('stream:stop');
+        }
+        
+        function checkServerCalls() {
+            ipcRenderer.on("request", function (event, req, port) {
+                var doc = document.implementation.createHTMLDocument(req.url);
+                var h1 = doc.createElement("h1");
+                h1.textContent = "Hello DOM: " + req.url;
+                doc.body.appendChild(h1);
+
+                ipcRenderer.send(port, 200, { "content-type": "text/html;charset=UTF-8" },
+                    doc.documentElement.outerHTML);
+            });
+        }
+    </script>
+</body>
+</html>

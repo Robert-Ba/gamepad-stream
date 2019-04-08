@@ -11,18 +11,51 @@
     <body>
         <div class="main-menu-container">
             <div class="menu-buttons-container">
-                <button>Join Stream</button>
-                <button>Start Stream</button>
+                <div id="join-stream-form" class="join-form">
+                    <form id="join-form">
+                        <div class="input-group">
+                            <label>
+                                IP Address:
+                            </label>
+                            <input type="text" id="ip" autofocus required />
+                        </div>
+                    </form>
+                    <button type="submit" form="join-form">Join stream</button>
+                </div>
+                <button id="start-stream">Start stream</button>
             </div>
         </div>
-    </body>
-    <script type="text/javascript">
-        $(document).ready(function(){
-            window.addEventListener("gamepadconnected", function (e) {
-                console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-                    e.gamepad.index, e.gamepad.id,
-                    e.gamepad.buttons.length, e.gamepad.axes.length);
+        
+        <script>
+            const electron = require('electron');
+            const { ipcRenderer } = electron;
+
+            $(document).ready(function () {
+                window.addEventListener("gamepadconnected", function (e) {
+                    console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
+                        e.gamepad.index, e.gamepad.id,
+                        e.gamepad.buttons.length, e.gamepad.axes.length);
+                });
+
+                $('#join-stream').on('click', function () {
+                    $('#join-stream-form').toggle();
+                });
+
+                $('form').on('submit', joinStream);
+                $('#start-stream').on('click', startStream)
             });
-        });
-    </script>
+
+            function joinStream(e) {
+                e.preventDefault();
+                const ip = $('#ip').val();
+
+                ipcRenderer.send('stream:join', ip);
+            }
+
+            function startStream(e) {
+                e.preventDefault();
+                ipcRenderer.send('stream:start');
+            }
+        </script>
+    </body>
 </html>
