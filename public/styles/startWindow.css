@@ -1,0 +1,31 @@
+.main-menu-container {
+    background-color: paleturquoise;
+    width: 100%;
+    height: 690px;
+}
+
+.menu-buttons-container {
+    width: 45%;
+    display: flex;
+    justify-content: space-between;
+    margin-left: auto;
+    margin-right: auto;
+    padding-top: 250px;
+}
+
+.menu-buttons-container > button {
+    border: 1px solid black;
+    font-size: 20pt;
+    background-color: white;
+    display: inline;
+    padding: 15px 20px;
+    width: 40%;
+    margin: auto;
+    cursor: pointer;
+}
+
+.menu-buttons-container > button:hover {
+    background-color: black;
+    border-color: white;
+    color: white;
+}
