@@ -6,70 +6,16 @@
             if (typeof module === 'object') {window.module = module; module = undefined;}
         </script>
         <script src="./node_modules/jquery/dist/jquery.slim.min.js"></script>
+        <script src="./public/javascript/controller.js"></script>
+        <script src="./public/javascript/stream.js"></script>
     </head>
     <body>
-        <video id="stream-video" style="background-color: grey; border: 2px solid black;" src="some_video.mp4" width="1280" height="720" />
+        <video id="stream-video" style="background-color: grey; border: 2px solid black;" width="1280" height="720" />
         
         
         <script type="text/javascript">
-            const videoTag = $('#stream-video');
-            const streamMediaSource = new MediaSource();
-            const url = URL.createObjectURL(streamMediaSource);
-            videoTag.src = url;
-
-            var playStream = true;
-
-            const audioSourceBuffer = streamMediaSource
-                .addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
-            const videoSourceBuffer = streamMediaSource
-                .addSourceBuffer('video/mp4; codecs="avc1.64001e"');
-
-
             $(document).ready(function () {
-                window.addEventListener("gamepadconnected", function (e) {
-                    console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
-                        e.gamepad.index, e.gamepad.id,
-                        e.gamepad.buttons.length, e.gamepad.axes.length);
-                });
             });
-
-            function fetchSegment(url) {
-                return fetch(url).then(function (response) {
-                    return response.arrayBuffer();
-                });
-            }
-
-            function callFetchAudioSegment(cb) {
-                fetchSegement("http://localhost:4000/audio")
-                    .then(function (audioSegment) {
-                        audioSourceBuffer.appendBuffer(audioSegment)
-                    })
-                    .then(function () {
-                        if (playStream) {
-                            return cb(callFetchAudioSegment);
-                        } else {
-                            return;
-                        }
-                    })
-            }
-
-            //callFetchAudioSegment(callFetchAudioSegment);
-
-            function callFetchVideoSegment(cb) {
-                fetchSegement("http://localhost:4000/video")
-                    .then(function (videoSegment) {
-                        videoSourceBuffer.appendBuffer(videoSegment)
-                    })
-                    .then(function () {
-                        if (playStream) {
-                            return cb(callFetchVideoSegment);
-                        } else {
-                            return;
-                        }
-                    })
-            }
-
-            //callFetchVideoSegment(callFetchVideoSegment);
         </script>
     </body>
 </html>

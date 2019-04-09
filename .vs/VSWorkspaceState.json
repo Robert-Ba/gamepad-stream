@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\public",
+    "\\public\\styles"
   ],
-  "SelectedNode": "\\startWindow.html",
+  "SelectedNode": "\\main.js",
   "PreviewInSolutionExplorer": false
 }

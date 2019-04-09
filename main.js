@@ -16,7 +16,10 @@ const temporaryControls = {
 let startWindow;
 
 var openSockets = [];
+var currentStreamSegment = 000;
+
 var textChunk = '';
+var client = undefined;
 var server = net.createServer(function(socket) {
     openSockets.push(socket);
     socket.write('Stream connected\r\n');
@@ -78,6 +81,17 @@ function createMainWindow() {
 
 ipcMain.on('stream:join', function (e, ip) {
     //mainWindow.webContents.send('item:add', item);
+
+    if (client) {
+        client.end();
+    }
+
+    // Connect to server
+    client = new net.Socket();
+    client.connect(4000, ip, function () {
+
+    });
+
     createStreamViewerWindow();
 });
 
