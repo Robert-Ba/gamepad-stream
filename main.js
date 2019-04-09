@@ -6,9 +6,42 @@ const net = require('net');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
+const temporaryControls = {
+    w: "Up",
+    a: "Left",
+    s: "Down",
+    d: "Right"
+}
+
 let startWindow;
-let streamWindow;
-let settingsWindows;
+
+var openSockets = [];
+var textChunk = '';
+var server = net.createServer(function(socket) {
+    openSockets.push(socket);
+    socket.write('Stream connected\r\n');
+    streamMedia();
+    socket.on('data', function(data){
+        // Accept any controller input here.
+        textChunk = data.toString('utf8');
+
+        let control = temporaryControls[textChunk];
+        if(control) {
+            socket.write(control);
+        } else {
+            socket.write("Unknown input.");
+        }
+    });
+});
+server.maxConnections = 1;
+
+// Send continuous video and audio stream.
+function streamMedia() {
+    // TODO:
+    // Make continuous loop that will write video and audio to socket
+
+    
+}
 
 app.on('ready', function() {
     startWindow = new BrowserWindow({
@@ -17,6 +50,10 @@ app.on('ready', function() {
     });
 
     startWindow.loadFile('startWindow.html');
+    startWindow.on('closed', function () {
+        startWindow = null;
+        server.close();
+    })
 
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     Menu.setApplicationMenu(mainMenu);
@@ -48,18 +85,20 @@ ipcMain.on('stream:start', function (e) {
     //mainWindow.webContents.send('item:add', item);
     createBroadcastStreamWindow();
     startWindow.webContents.once("did-finish-load", function () {
-        var http = require("http");
-        var crypto = require("crypto");
-        var server = http.createServer(function (req, res) {
-            var port = crypto.randomBytes(16).toString("hex");
-            ipcMain.once(port, function (ev, status, head, body) {
-                res.writeHead(status, head);
-                res.end(body);
-            });
-            window.webContents.send("request", req, port);
-        });
-        server.listen(8000);
-        console.log("http://localhost:8000/");
+        startServer();
+
+        // var http = require("http");
+        // var crypto = require("crypto");
+        // var server = http.createServer(function (req, res) {
+        //     var port = crypto.randomBytes(16).toString("hex");
+        //     ipcMain.once(port, function (ev, status, head, body) {
+        //         res.writeHead(status, head);
+        //         res.end(body);
+        //     });
+        //     window.webContents.send("request", req, port);
+        // });
+        // server.listen(8000);
+        // console.log("http://localhost:8000/");
     });
 });
 
@@ -67,17 +106,20 @@ ipcMain.on('stream:stop', function (e) {
     //mainWindow.webContents.send('item:add', item);
 
     // Stop listening on port.
-
+    stopServer();
     createMainWindow();
 });
 
-startWindow.on('closed', function () {
-    startWindow = null;
-})
+function startServer() {
+    console.log('Listening on port 4000')
+    server.listen(4000, '127.0.0.1');
+}
 
-// TODO
-net.createServer().listen();
-
+function stopServer() {
+    console.log('Closing server.')
+    openSockets.forEach((socket) => {socket.end()});
+    server.close();
+}
 
 const mainMenuTemplate = [
     {
