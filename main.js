@@ -42,7 +42,6 @@ server.maxConnections = 1;
 function streamMedia() {
     // TODO:
     // Make continuous loop that will write video and audio to socket
-
     
 }
 
@@ -51,7 +50,7 @@ app.on('ready', function() {
         width: 1350,
         height: 800
     });
-
+    
     startWindow.loadFile('./windows/views/startWindow.html');
     startWindow.on('closed', function () {
         startWindow = null;
@@ -76,8 +75,6 @@ function createBroadcastStreamWindow() {
 function createMainWindow() {
     startWindow.loadFile('./windows/views/startWindow.html');
 }
-
-
 
 ipcMain.on('stream:join', function (e, ip) {
     //mainWindow.webContents.send('item:add', item);
@@ -125,7 +122,7 @@ ipcMain.on('stream:stop', function (e) {
 });
 
 function startServer() {
-    console.log('Listening on port 4000')
+    console.log('Listening on port 4000');
     server.listen(4000, '127.0.0.1');
 }
 

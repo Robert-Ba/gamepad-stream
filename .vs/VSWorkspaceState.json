@@ -2,6 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\public",
+    "\\public\\javascript",
+    "\\public\\media",
     "\\public\\styles"
   ],
   "SelectedNode": "\\main.js",
