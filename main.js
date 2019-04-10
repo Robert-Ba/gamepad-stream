@@ -52,7 +52,7 @@ app.on('ready', function() {
         height: 800
     });
 
-    startWindow.loadFile('startWindow.html');
+    startWindow.loadFile('./windows/views/startWindow.html');
     startWindow.on('closed', function () {
         startWindow = null;
         server.close();
@@ -66,15 +66,15 @@ app.on('ready', function() {
 
 // Start streaming
 function createStreamViewerWindow() {
-    startWindow.loadFile('streamWindow.html');
+    startWindow.loadFile('./windows/views/streamWindow.html');
 }
 
 function createBroadcastStreamWindow() {
-    startWindow.loadFile('broadcastWindow.html');
+    startWindow.loadFile('./windows/views/broadcastWindow.html');
 }
 
 function createMainWindow() {
-    startWindow.loadFile('startWindow.html');
+    startWindow.loadFile('./windows/views/startWindow.html');
 }
 
 
@@ -89,7 +89,7 @@ ipcMain.on('stream:join', function (e, ip) {
     // Connect to server
     client = new net.Socket();
     client.connect(4000, ip, function () {
-
+        // TODO:
     });
 
     createStreamViewerWindow();
