@@ -84,7 +84,7 @@
                         toBuffer(blob, function (err, buffer) {
                             if (err) throw err;
                             // TODO: send buffer to any connected clients
-                            ipcRenderer.send('stream:broadcast', buffer);
+                            ipcRenderer.send('stream:send', buffer);
                         });
                     });
                 }, 40);

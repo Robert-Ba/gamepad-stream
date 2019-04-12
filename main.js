@@ -37,6 +37,7 @@ var server = net.createServer(function(socket) {
     if(openSockets.length === 0) {
         openSockets.push(socket);
         socket.write('Stream connected\r\n');
+        console.log('Viewer connected.')
         socket.on('data', function (data) {
             // Accept any controller input here.
             textChunk = data.toString('utf8');
