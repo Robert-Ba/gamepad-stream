@@ -13,16 +13,24 @@ const temporaryControls = {
     d: "Right"
 }
 
+const listenerChannels = {
+    joinStream: 'stream:join',
+    exitStream: 'stream:exit',
+    startStream: 'stream:start',
+    stopStream: 'stream:stop',
+    sendStream: 'stream:send'
+};
+
 let startWindow;
 
 // Server socket connection:
 var openSockets = [];
-var currentStreamSegment = 000;
-var streamActive = false;
+var currentStreamSegment = 000;  // Remove this?
+var streamActive = false; // Remove this?
 var textChunk = '';
 
 // Client socket connection:
-var client = undefined;
+var clientSocket = undefined;
 
 var server = net.createServer(function(socket) {
     // Only one open socket allowed
@@ -46,19 +54,10 @@ var server = net.createServer(function(socket) {
             // Change this if I decide to support multiple connections
             openSockets = [];
         });
-
-        streamMedia();
     }
     
 });
 server.maxConnections = 1;
-
-// Send continuous video and audio stream.
-function streamMedia() {
-    // TODO:
-    // Make continuous loop that will write video and audio to socket
-    
-}
 
 app.on('ready', function() {
     startWindow = new BrowserWindow({
@@ -69,79 +68,117 @@ app.on('ready', function() {
     startWindow.loadFile('./windows/views/startWindow.html');
     startWindow.on('closed', function () {
         startWindow = null;
+        if(clientSocket) {clientSocket.end(); clientSocket = undefined;}
         server.close();
     })
 
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     Menu.setApplicationMenu(mainMenu);
 
-
+    initStartEvents();
 });
 
 // Start streaming
 function createStreamViewerWindow() {
     startWindow.loadFile('./windows/views/streamWindow.html');
+    initStreamViewerEvents();
 }
 
 function createBroadcastStreamWindow() {
     startWindow.loadFile('./windows/views/broadcastWindow.html');
+    initBroadcastEvents();
 }
 
-function createMainWindow() {
+function createMainWindow(msg) {
     startWindow.loadFile('./windows/views/startWindow.html');
+    initStartEvents();
+
+    
+    startWindow.webContents.once("did-finish-load", function () {
+        if(msg) {
+            startWindow.webContents.send("message", msg);
+        }
+    });
 }
 
-ipcMain.on('stream:join', function (e, ip) {
-    //mainWindow.webContents.send('item:add', item);
+function initStartEvents() {
+    ipcMain.on('stream:join', function (e, ip) {
+        joinStream(ip);
+    });
 
-    if (client) {
-        client.end();
+    ipcMain.on('stream:start', function (e, windowId) {
+        startStream(windowId);
+    });
+}
+
+function joinStream(ip) {
+    if (clientSocket) {
+        clientSocket.end();
     }
 
     // Connect to server
-    client = new net.Socket();
-    client.connect(4000, ip, function () {
-        // TODO:
+    clientSocket = new net.Socket();
+    clientSocket.connect(4000, ip);
+    
+    clientSocket.on('error', function(err) {
+        startWindow.webContents.send("message", 'Could not connect to '+ip);
     });
 
-    createStreamViewerWindow();
-});
+    clientSocket.on('ready', function() {
+        createStreamViewerWindow();
+    });
 
-ipcMain.on('stream:start', function (e, windowId) {
-    //mainWindow.webContents.send('item:add', item);
+    clientSocket.on('data', function(data) {
+        startWindow.webContents.send("videoStream", data);
+    });
+
+    clientSocket.on('end', function() {
+        startWindow.webContents.send("streamEnded");
+        clientSocket = undefined;
+    });
+}
+
+function startStream(windowId) {
+    removeAllListeners();
     createBroadcastStreamWindow();
-    console.log(windowId);
     startWindow.webContents.once("did-finish-load", function () {
-        // Init event listeners
-        //  - Listen for stream
-        
         startServer();
 
-        // Start stream after starting server.
+        // Start streaming after starting server.
         startWindow.webContents.send("captureWindow", windowId);
-
-        // var http = require("http");
-        // var crypto = require("crypto");
-        // var server = http.createServer(function (req, res) {
-        //     var port = crypto.randomBytes(16).toString("hex");
-        //     ipcMain.once(port, function (ev, status, head, body) {
-        //         res.writeHead(status, head);
-        //         res.end(body);
-        //     });
-        //     window.webContents.send("request", req, port);
-        // });
-        // server.listen(8000);
-        // console.log("http://localhost:8000/");
     });
-});
+}
 
-ipcMain.on('stream:stop', function (e) {
-    //mainWindow.webContents.send('item:add', item);
+function initStreamViewerEvents() {
+    ipcMain.on('stream:exit', function(e) {
+        removeAllListeners();
+        clientSocket.end();
+        createMainWindow();
+    });
+}
 
-    // Stop listening on port.
-    stopServer();
-    createMainWindow();
-});
+function initBroadcastEvents() {
+    ipcMain.on('stream:stop', function (e) {
+        //mainWindow.webContents.send('item:add', item);
+    
+        // Stop listening on port.
+        stopServer();
+        removeAllListeners();
+        createMainWindow();
+    });
+
+    ipcMain.on('stream:send', function(e, buffer) {
+        if(openSockets.length > 0) {
+            openSockets[0].write(buffer);
+        } else {
+            console.log('No client');
+        }
+    });
+}
+
+function removeAllListeners() {
+    ipcMain.removeAllListeners();
+}
 
 function startServer() {
     console.log('Listening on port 4000');
