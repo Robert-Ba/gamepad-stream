@@ -24,8 +24,7 @@ function sourceOpen() {
     });
 
 
-
-
+    // I think I can remove all this? Unless the current situation is not working.
     function fetchSegment(url) {
         return fetch(url).then(function (response) {
             return response.arrayBuffer();
