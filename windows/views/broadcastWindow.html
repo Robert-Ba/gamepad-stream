@@ -79,7 +79,7 @@
                 
                 // Trying a different method using mediaRecorder instead of canvas
                 mediaRecorder.ondataavailable = function (e) {
-                    let newBlob = new Blob(e.data);
+                    let newBlob = new Blob([e.data]);
                     toBuffer(newBlob, function(err, buffer) {
                         ipcRenderer.send('stream:send', buffer);
                     });
