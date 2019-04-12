@@ -131,8 +131,10 @@ function joinStream(ip) {
 
     startWindow.webContents.once("did-finish-load", function () {
         clientSocket.on('data', function(data) {
-            console.log('Received data.\r\n');
-            startWindow.webContents.send("videoStream", data);
+            console.log('Received data.');
+            if(startWindow) {
+                startWindow.webContents.send("videoStream", data);
+            }
         });
     
         clientSocket.on('end', function() {

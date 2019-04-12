@@ -75,20 +75,31 @@
             // This could be too slow. Need to test.
             video.onloadedmetadata = () => {
                 video.play();
+                var mediaRecorder = new mediaRecorder(stream, {mimeType : 'video/mp4'});
+                
+                // Trying a different method using mediaRecorder instead of canvas
+                mediaRecorder.ondataavailable = function (e) {
+                    let newBlob = new Blob(e.data);
+                    toBuffer(newBlob, function(err, buffer) {
+                        ipcRenderer.send('stream:send', buffer);
+                    });
+                }
+
+                mediaRecorder.start(40);
 
                 // TODO: Next I need to send buffer to server
-                setInterval(() => {
-                    console.log('Stream interval send')
-                    const canvas = document.createElement('canvas');
-                    canvas.getContext('2d').drawImage(video, 0, 0, 800, 800);
-                    canvas.toBlob(blob => {
-                        toBuffer(blob, function (err, buffer) {
-                            if (err) throw err;
-                            // TODO: send buffer to any connected clients
-                            ipcRenderer.send('stream:send', buffer);
-                        });
-                    });
-                }, 40);
+                // setInterval(() => {
+                //     console.log('Stream interval send')
+                //     const canvas = document.createElement('canvas');
+                //     canvas.getContext('2d').drawImage(video, 0, 0, 800, 800);
+                //     canvas.toBlob(blob => {
+                //         toBuffer(blob, function (err, buffer) {
+                //             if (err) throw err;
+                //             // TODO: send buffer to any connected clients
+                //             ipcRenderer.send('stream:send', buffer);
+                //         });
+                //     });
+                // }, 40);
             }
         }
 
