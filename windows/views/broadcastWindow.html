@@ -78,7 +78,6 @@
 
                 // TODO: Next I need to send buffer to server
                 setInterval(() => {
-                    console.log('Stream interval send')
                     const canvas = document.createElement('canvas');
                     canvas.getContext('2d').drawImage(video, 0, 0, 800, 800);
                     canvas.toBlob(blob => {
@@ -90,6 +89,19 @@
                     });
                 }, 40);
             }
+        }
+
+        function toBuffer(blob, cb) {
+            var reader = new FileReader()
+
+            function onLoadEnd(e) {
+                reader.removeEventListener('loadend', onLoadEnd, false)
+                if (e.error) cb(e.error)
+                else cb(null, Buffer.from(reader.result))
+            }
+
+            reader.addEventListener('loadend', onLoadEnd, false)
+            reader.readAsArrayBuffer(blob)
         }
 
         function handleError(e) {
