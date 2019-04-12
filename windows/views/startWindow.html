@@ -34,7 +34,7 @@
                         </tr>
                         <tr>
                             <td>
-                                <button type="submit" form="join-form">Join stream</button>
+                                <button id="join-stream-button" type="submit" form="join-stream-form">Join stream</button>
                             </td>
                             <td>
                                 <button id="start-stream" type="submit" form="select-window-form">Start stream</button>
@@ -77,9 +77,17 @@
                 $('#select-window-form').on('submit', startStream)
             });
 
+            ipcRenderer.on("message", function(e, msg) {
+                $('#join-stream-button').attr('disabled', false);
+                $('#start-stream').attr('disabled', false);
+                alert(msg);
+            });
+
             function joinStream(e) {
                 e.preventDefault();
+
                 const ip = $('#ip').val();
+                $('#join-stream-button').attr('disabled', true);
 
                 ipcRenderer.send('stream:join', ip);
             }
@@ -88,6 +96,8 @@
                 e.preventDefault();
 
                 const windowId = $('input[name="window-options"]:checked').val();
+                $('#start-stream').attr('disabled', true);
+
                 ipcRenderer.send('stream:start', windowId);
             }
 

@@ -4,6 +4,9 @@ const url = URL.createObjectURL(streamMediaSource);
 streamMediaSource.addEventListener('sourceopen', sourceOpen);
 videoTag.src = url;
 
+const electron = require('electron');
+const { ipcRenderer } = electron;
+
 var playStream = true;
 
 function sourceOpen() {
@@ -15,6 +18,13 @@ function sourceOpen() {
     //callFetchAudioSegment(callFetchAudioSegment);
     //callFetchVideoSegment(callFetchVideoSegment);
 
+    // Is it okay that the client is continously receiving the stream rather than requesting?
+    ipcRenderer.on('videoStream', function(buffer) {
+        videoSourceBuffer.appendBuffer(buffer);
+    });
+
+
+    // I think I can remove all this? Unless the current situation is not working.
     function fetchSegment(url) {
         return fetch(url).then(function (response) {
             return response.arrayBuffer();
@@ -22,7 +32,7 @@ function sourceOpen() {
     }
 
     function callFetchAudioSegment(cb) {
-        fetchSegement("http://localhost:4000/audio")
+        fetchSegment("http://localhost:4000/audio")
             .then(function (audioSegment) {
                 audioSourceBuffer.appendBuffer(audioSegment)
             })
@@ -36,7 +46,7 @@ function sourceOpen() {
     }
 
     function callFetchVideoSegment(cb) {
-        fetchSegement("http://localhost:4000/video")
+        fetchSegment("http://localhost:4000/video")
             .then(function (videoSegment) {
                 videoSourceBuffer.appendBuffer(videoSegment)
             })
