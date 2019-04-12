@@ -69,8 +69,12 @@ app.on('ready', function() {
     
     startWindow.loadFile('./windows/views/startWindow.html');
     startWindow.on('closed', function () {
+        if(clientSocket) {
+            clientSocket.end(); 
+            clientSocket = undefined;
+        }
+
         startWindow = null;
-        if(clientSocket) {clientSocket.end(); clientSocket = undefined;}
         server.close();
     })
 
@@ -133,9 +137,12 @@ function joinStream(ip) {
     startWindow.webContents.once("did-finish-load", function () {
         clientSocket.on('data', function(data) {
             console.log('Received data.');
-            if(startWindow) {
+            try {
                 startWindow.webContents.send("videoStream", data);
+            } catch(err) {
+                console.log('Window closed');
             }
+            
         });
     
         clientSocket.on('end', function() {
