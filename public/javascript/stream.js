@@ -13,7 +13,7 @@ function sourceOpen() {
     const audioSourceBuffer = streamMediaSource
         .addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
     const videoSourceBuffer = streamMediaSource
-        .addSourceBuffer('video/mp4; codecs="avc1.64001e"');
+        .addSourceBuffer('video/webm; codecs="vp9, vorbis"');
 
     //callFetchAudioSegment(callFetchAudioSegment);
     //callFetchVideoSegment(callFetchVideoSegment);
