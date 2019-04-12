@@ -4,8 +4,9 @@
     "\\public",
     "\\public\\javascript",
     "\\public\\media",
-    "\\public\\styles"
+    "\\public\\styles",
+    "\\windows",
+    "\\windows\\views"
   ],
-  "SelectedNode": "\\main.js",
   "PreviewInSolutionExplorer": false
 }

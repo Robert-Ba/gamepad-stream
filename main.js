@@ -145,7 +145,7 @@ ipcMain.on('stream:stop', function (e) {
 
 function startServer() {
     console.log('Listening on port 4000');
-    server.listen(4000, '127.0.0.1');
+    server.listen(4000, '0.0.0.0');
 }
 
 function stopServer() {
