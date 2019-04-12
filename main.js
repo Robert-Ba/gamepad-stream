@@ -50,7 +50,8 @@ var server = net.createServer(function(socket) {
             }
         });
 
-        socket.on('end', function() {
+        socket.on('end', function () {
+            console.log('Viewer disconnected')
             //console.log(this)
             // Change this if I decide to support multiple connections
             openSockets = [];
