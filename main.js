@@ -15,26 +15,41 @@ const temporaryControls = {
 
 let startWindow;
 
+// Server socket connection:
 var openSockets = [];
 var currentStreamSegment = 000;
-
+var streamActive = false;
 var textChunk = '';
-var client = undefined;
-var server = net.createServer(function(socket) {
-    openSockets.push(socket);
-    socket.write('Stream connected\r\n');
-    streamMedia();
-    socket.on('data', function(data){
-        // Accept any controller input here.
-        textChunk = data.toString('utf8');
 
-        let control = temporaryControls[textChunk];
-        if(control) {
-            socket.write(control);
-        } else {
-            socket.write("Unknown input.");
-        }
-    });
+// Client socket connection:
+var client = undefined;
+
+var server = net.createServer(function(socket) {
+    // Only one open socket allowed
+    if(openSockets.length === 0) {
+        openSockets.push(socket);
+        socket.write('Stream connected\r\n');
+        socket.on('data', function (data) {
+            // Accept any controller input here.
+            textChunk = data.toString('utf8');
+
+            let control = temporaryControls[textChunk];
+            if (control) {
+                socket.write(control);
+            } else {
+                socket.write("Unknown input.");
+            }
+        });
+
+        socket.on('end', function() {
+            //console.log(this)
+            // Change this if I decide to support multiple connections
+            openSockets = [];
+        });
+
+        streamMedia();
+    }
+    
 });
 server.maxConnections = 1;
 
@@ -92,11 +107,18 @@ ipcMain.on('stream:join', function (e, ip) {
     createStreamViewerWindow();
 });
 
-ipcMain.on('stream:start', function (e) {
+ipcMain.on('stream:start', function (e, windowId) {
     //mainWindow.webContents.send('item:add', item);
     createBroadcastStreamWindow();
+    console.log(windowId);
     startWindow.webContents.once("did-finish-load", function () {
+        // Init event listeners
+        //  - Listen for stream
+        
         startServer();
+
+        // Start stream after starting server.
+        startWindow.webContents.send("captureWindow", windowId);
 
         // var http = require("http");
         // var crypto = require("crypto");
@@ -146,10 +168,6 @@ const mainMenuTemplate = [
         ]
     }
 ];
-
-if (process.platform == 'darwin') {
-    mainMenuTemplate.unshift({});
-}
 
 if (process.env.NODE_ENV !== 'production') {
     mainMenuTemplate.push({

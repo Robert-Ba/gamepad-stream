@@ -10,9 +10,10 @@
 <body>
     <p>Stream is active.</p>
     <button id="stop-stream">Stop streaming</button>
+    <video width="320" height="240"></video>
     <script type="text/javascript">
         const electron = require('electron');
-        const { ipcRenderer } = electron;
+        const { ipcRenderer, desktopCapturer } = electron;
 
         $(document).ready(function () {
             $('#stop-stream').click(stopStream);
@@ -24,17 +25,74 @@
             ipcRenderer.send('stream:stop');
         }
         
-        // TODO: Replace this:
-        function checkServerCalls() {
-            ipcRenderer.on("request", function (event, req, port) {
-                var doc = document.implementation.createHTMLDocument(req.url);
-                var h1 = doc.createElement("h1");
-                h1.textContent = "Hello DOM: " + req.url;
-                doc.body.appendChild(h1);
+        // Remove this. I don't think I need any server calls going to the UI.
+        ipcRenderer.on("request", function (event, req, port) {
+            var doc = document.implementation.createHTMLDocument(req.url);
+            var h1 = doc.createElement("h1");
+            h1.textContent = "Hello DOM: " + req.url;
+            doc.body.appendChild(h1);
 
-                ipcRenderer.send(port, 200, { "content-type": "text/html;charset=UTF-8" },
-                    doc.documentElement.outerHTML);
-            });
+            ipcRenderer.send(port, 200, { "content-type": "text/html;charset=UTF-8" },
+                doc.documentElement.outerHTML);
+        });
+
+        // Begin capturing a specific window.
+        ipcRenderer.on("captureWindow", function(event, windowId) {
+            startCapture(windowId);
+        })
+
+        function startCapture(windowId) {
+            desktopCapturer.getSources({ types: ['window', 'screen'] }, (error, sources) => {
+                if (error) throw error
+                for (let i = 0; i < sources.length; ++i) {
+                    if (sources[i].id === windowId) {
+                        navigator.mediaDevices.getUserMedia({
+                            audio: false,
+                            video: {
+                                mandatory: {
+                                    chromeMediaSource: 'desktop',
+                                    chromeMediaSourceId: sources[i].id,
+                                    minWidth: 1280,
+                                    maxWidth: 1280,
+                                    minHeight: 720,
+                                    maxHeight: 720
+                                }
+                            }
+                        }).then((stream) => handleStream(stream))
+                            .catch((e) => handleError(e))
+                        return
+                    }
+                }
+            })
+        }
+
+        function handleStream(stream) {
+            const video = document.querySelector('video');
+
+            video.srcObject = stream;
+
+
+            // This could be too slow. Need to test.
+            video.onloadedmetadata = () => {
+                video.play();
+
+                // TODO: Next I need to send buffer to server
+                setInterval(() => {
+                    const canvas = document.createElement('canvas');
+                    canvas.getContext('2d').drawImage(video, 0, 0, 800, 800);
+                    canvas.toBlob(blob => {
+                        toBuffer(blob, function (err, buffer) {
+                            if (err) throw err;
+                            // TODO: send buffer to any connected clients
+                            ipcRenderer.send('stream:broadcast', buffer);
+                        });
+                    });
+                }, 40);
+            }
+        }
+
+        function handleError(e) {
+            console.log(e)
         }
     </script>
 </body>

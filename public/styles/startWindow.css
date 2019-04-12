@@ -17,7 +17,7 @@ body {
     justify-content: space-between;
     margin-left: auto;
     margin-right: auto;
-    padding-top: 250px;
+    padding-top: 230px;
 }
 
 .menu-buttons-container button {
@@ -26,7 +26,7 @@ body {
     background-color: white;
     display: inline;
     padding: 15px 20px;
-    width: 40%;
+    width: 100%;
     margin: auto;
     cursor: pointer;
 }
@@ -38,18 +38,29 @@ body {
 }
 
 #join-stream-form {
-    top: 200px;
-    margin: auto;
-    width: 40%;
-    border-right: 2px solid black;
-    padding: 10px 20px;
+    position: relative;
+    bottom: 5px;
 }
 
-#join-stream-form button {
-    width: 100%;
+#window-option-list {
+    max-height: 270px;
+    overflow-y: auto;
 }
 
 .input-group {
     margin-bottom: 5px;
-    position: relative
+    /* position: relative */
+}
+
+.menu-table {
+    width: 100%;
+}
+
+.menu-table > tbody > tr {
+    width: 100%;
+}
+
+.menu-table > tbody > tr > td {
+    vertical-align: bottom;
+    width: 50%;
 }
