@@ -129,13 +129,16 @@ function joinStream(ip) {
         createStreamViewerWindow();
     });
 
-    clientSocket.on('data', function(data) {
-        startWindow.webContents.send("videoStream", data);
-    });
-
-    clientSocket.on('end', function() {
-        startWindow.webContents.send("streamEnded");
-        clientSocket = undefined;
+    startWindow.webContents.once("did-finish-load", function () {
+        clientSocket.on('data', function(data) {
+            console.log('Received data.\r\n');
+            startWindow.webContents.send("videoStream", data);
+        });
+    
+        clientSocket.on('end', function() {
+            startWindow.webContents.send("streamEnded");
+            clientSocket = undefined;
+        });
     });
 }
 
@@ -170,6 +173,7 @@ function initBroadcastEvents() {
 
     ipcMain.on('stream:send', function(e, buffer) {
         if(openSockets.length > 0) {
+            console.log('writing to client')
             openSockets[0].write(buffer);
         } else {
             console.log('No client');

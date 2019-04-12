@@ -18,6 +18,10 @@ function sourceOpen() {
     //callFetchAudioSegment(callFetchAudioSegment);
     //callFetchVideoSegment(callFetchVideoSegment);
 
+    ipcRenderer.on('streamEnded', function() {
+        console.log('Stream has ended.');
+    })
+
     // Is it okay that the client is continously receiving the stream rather than requesting?
     ipcRenderer.on('videoStream', function(buffer) {
         videoSourceBuffer.appendBuffer(buffer);
