@@ -73,7 +73,6 @@ app.on('ready', function() {
             clientSocket.end(); 
         }
 
-        startWindow = null;
         server.close();
     })
 
@@ -125,20 +124,19 @@ function joinStream(ip) {
     createStreamViewerWindow();
 
     startWindow.webContents.once("did-finish-load", function () {
-        startWindow.webContents.send("videoStream", 'test');
-
         // Connect to server
         clientSocket = new net.Socket();
-        //clientSocket.connect(4000, ip);
+        clientSocket.connect(4000, ip);
 
         clientSocket.on('error', function (err) {
             startWindow.webContents.send("message", 'Could not connect to ' + ip);
         });
 
-        clientSocket.once('data', function(data) {
-            console.log('Received data.');
-            startWindow.webContents.send("videoStream", data);
-            clientSocket.end();
+        clientSocket.on('data', function(data) {
+            console.log('data')
+            if(startWindow) {
+                startWindow.webContents.send("videoStream", data);
+            }
         });
     
         clientSocket.on('end', function() {

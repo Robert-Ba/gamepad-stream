@@ -32,7 +32,7 @@
             const audioSourceBuffer = streamMediaSource
                 .addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
             const videoSourceBuffer = streamMediaSource
-                .addSourceBuffer('video/webm; codecs="vp9, vorbis"');
+                .addSourceBuffer('video/webm;codecs="vp9"'); //  codecs="vp8"
 
             //callFetchAudioSegment(callFetchAudioSegment);
             //callFetchVideoSegment(callFetchVideoSegment);
@@ -43,8 +43,10 @@
 
             // Is it okay that the client is continously receiving the stream rather than requesting?
             ipcRenderer.on('videoStream', function (event, buffer) {
-                console.log('Appending buffer')
-                //videoSourceBuffer.appendBuffer(buffer);
+                if(Object.prototype.toString.call(buffer) === "[object Uint8Array]") {
+                    // Buffer parameter is a uint8array
+                    videoSourceBuffer.appendBuffer(buffer.buffer);
+                }
             });
 
 
