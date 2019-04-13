@@ -75,7 +75,7 @@
             // This could be too slow. Need to test.
             video.onloadedmetadata = () => {
                 video.play();
-                var mediaRecorder = new MediaRecorder(stream, {mimeType : 'video/webm'});
+                var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9'});
                 
                 // Trying a different method using mediaRecorder instead of canvas
                 mediaRecorder.ondataavailable = function (e) {
