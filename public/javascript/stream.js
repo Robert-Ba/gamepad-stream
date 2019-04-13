@@ -23,7 +23,7 @@ function sourceOpen() {
     })
 
     // Is it okay that the client is continously receiving the stream rather than requesting?
-    ipcRenderer.on('videoStream', function(buffer) {
+    ipcRenderer.on('videoStream', function(event, buffer) {
         console.log('Appending buffer')
         videoSourceBuffer.appendBuffer(buffer);
     });
