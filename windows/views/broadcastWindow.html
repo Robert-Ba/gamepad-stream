@@ -75,12 +75,13 @@
             // This could be too slow. Need to test.
             video.onloadedmetadata = () => {
                 video.play();
-                var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9'});
+                var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs="opus,vp8"'});
                 
                 // Trying a different method using mediaRecorder instead of canvas
                 mediaRecorder.ondataavailable = function (e) {
-                    let newBlob = new Blob([e.data]);
-                    toBuffer(newBlob, function(err, buffer) {
+                    //console.log(e.data)
+                    //let newBlob = new Blob([e.data]);
+                    toBuffer(e.data, function(err, buffer) {
                         ipcRenderer.send('stream:send', buffer);
                     });
                 }

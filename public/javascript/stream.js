@@ -1,31 +1,46 @@
-const videoTag = $('#stream-video');
-const streamMediaSource = new MediaSource();
-const url = URL.createObjectURL(streamMediaSource);
-streamMediaSource.addEventListener('sourceopen', sourceOpen);
-videoTag.src = url;
-
 const electron = require('electron');
 const { ipcRenderer } = electron;
 
 var playStream = true;
+const videoTag = document.querySelector('video');
+const streamMediaSource = new MediaSource();
 
-function sourceOpen() {
+const url = URL.createObjectURL(streamMediaSource);
+videoTag.src = url;
+streamMediaSource.addEventListener('sourceopen', callback);
+videoTag.play();
+
+let tasks = Promise.resolve(void 0);
+
+function callback(e) {
+    console.log('source opened')
     const audioSourceBuffer = streamMediaSource
         .addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
     const videoSourceBuffer = streamMediaSource
-        .addSourceBuffer('video/webm; codecs="vp9, vorbis"');
+        .addSourceBuffer('video/webm; codecs="opus,vp8"'); //  codecs="vp8"
 
     //callFetchAudioSegment(callFetchAudioSegment);
     //callFetchVideoSegment(callFetchVideoSegment);
 
-    ipcRenderer.on('streamEnded', function() {
+    ipcRenderer.on('streamEnded', function () {
         console.log('Stream has ended.');
     })
 
     // Is it okay that the client is continously receiving the stream rather than requesting?
-    ipcRenderer.on('videoStream', function(event, buffer) {
-        console.log('Appending buffer')
-        videoSourceBuffer.appendBuffer(buffer);
+    ipcRenderer.on('videoStream', function (event, data) {
+        console.log(data)
+        if (Object.prototype.toString.call(data) === "[object Uint8Array]") {
+            // Buffer parameter is a uint8array
+            var buffer = data.buffer;
+
+            tasks = tasks.then(async(function* () {
+                videoSourceBuffer.appendBuffer(buffer);
+                yield new Promise((resolve, reject) => {
+                    videoSourceBuffer.addEventListener('updateend', () => resolve(), { once: true });
+                    videoSourceBuffer.addEventListener("error", (err) => reject(ev), { once: true });
+                });
+            }));
+        }
     });
 
 

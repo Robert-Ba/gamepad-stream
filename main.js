@@ -55,6 +55,7 @@ var server = net.createServer(function(socket) {
             //console.log(this)
             // Change this if I decide to support multiple connections
             openSockets = [];
+            if(clientSocket) clientSocket.removeListener('data');
         });
     }
     
