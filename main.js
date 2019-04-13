@@ -71,7 +71,6 @@ app.on('ready', function() {
     startWindow.on('closed', function () {
         if(clientSocket) {
             clientSocket.end(); 
-            clientSocket = undefined;
         }
 
         startWindow = null;
@@ -122,31 +121,27 @@ function joinStream(ip) {
         clientSocket.end();
     }
 
-    // Connect to server
-    clientSocket = new net.Socket();
-    clientSocket.connect(4000, ip);
-    
-    clientSocket.on('error', function(err) {
-        startWindow.webContents.send("message", 'Could not connect to '+ip);
-    });
-
-    clientSocket.on('ready', function() {
-        createStreamViewerWindow();
-    });
+    removeAllListeners();
+    createStreamViewerWindow();
 
     startWindow.webContents.once("did-finish-load", function () {
-        clientSocket.on('data', function(data) {
+        startWindow.webContents.send("videoStream", 'test');
+
+        // Connect to server
+        clientSocket = new net.Socket();
+        //clientSocket.connect(4000, ip);
+
+        clientSocket.on('error', function (err) {
+            startWindow.webContents.send("message", 'Could not connect to ' + ip);
+        });
+
+        clientSocket.once('data', function(data) {
             console.log('Received data.');
-            try {
-                startWindow.webContents.send("videoStream", data);
-            } catch(err) {
-                console.log('Window closed');
-            }
-            
+            startWindow.webContents.send("videoStream", data);
+            clientSocket.end();
         });
     
         clientSocket.on('end', function() {
-            startWindow.webContents.send("streamEnded");
             clientSocket = undefined;
         });
     });
