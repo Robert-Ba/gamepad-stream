@@ -16,15 +16,15 @@ var videoTag = undefined;
 $(document).ready(function() {
     videoTag = document.querySelector('video');
     //streamMediaSource.addEventListener('sourceopen', callback);
-    videoTag.play();
 
-    myConnection.onaddstream = function (e) {
-        videoTag.src = window.URL.createObjectURL(e.stream);
+    myConnection.ontrack = function (e) {
+        console.log('Stream added.');
+        videoTag.srcObject = window.URL.createObjectURL(e.streams[0]);
+        videoTag.play();
     };
 
     // Make offer object and send to connected server
     myConnection.createOffer(function (offer) {
-        console.log(offer)
         ipcRenderer.send('WebRTCChannel', { type: 'offer', offer: JSON.stringify(offer)});
 
         myConnection.setLocalDescription(offer);
@@ -43,6 +43,8 @@ myConnection.onicecandidate = function (event) {
 
 // Handle any answers 
 ipcRenderer.on('answer', function(e, answer) {
+    console.log('Received answer ('+answer.type+'):')
+    console.log(answer)
     myConnection.setRemoteDescription(new RTCSessionDescription(answer));
 });
 
