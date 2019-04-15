@@ -103,7 +103,7 @@ function handleServerSocketData(data) {
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
 ipcMain.on('WebRTCChannel', function(event, data) {
-    console.log(data)
+    
     // data is {type, message}
     switch(data.type) {
         case 'offer':
@@ -121,11 +121,9 @@ ipcMain.on('WebRTCChannel', function(event, data) {
 
 // From the stream viewer, send offer to broadcaster to view the stream.
 function sendOffer(offer) {
-    console.log('attempting to send socket')
-    console.log(clientSocket.readyState === clientSocket.OPEN)
 
     // Socket should already be opened. Just send the offer.
-    if(clientSocket && clientSocket.readyState === clientSocket.OPEN) {
+    if(clientSocket) {
         console.log('Sending offer')
         clientSocket.write(JSON.stringify({ type: 'offer', offer: offer }));
     }
@@ -200,10 +198,10 @@ function handleClientSocketData(data) {
         if(mainWindow) {
             switch(data.type) {
                 case 'answer':
-                    startWindow.webContents.send('answer', data.answer);
+                    mainWindow.webContents.send('answer', JSON.parse(data.answer));
                     break;
                 case 'candidate':
-                    startWindow.webContents.send('answer', data.candidate);
+                    mainWindow.webContents.send('candidate', JSON.parse(data.candidate));
                     break;
                 case 'error':
                     console.log(data.message);
