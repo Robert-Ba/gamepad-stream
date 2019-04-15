@@ -83,14 +83,13 @@ function createMainWindow(msg) {
 // When the server receives data on a socket
 function handleServerSocketData(data) {
     data = JSON.parse(data.toString('utf8'));
-    
 
     switch(data.type) {
         case 'offer':
-            mainWindow.webContents.send("offer", data.offer);
+            mainWindow.webContents.send("offer", JSON.parse(data.offer));
             break;
         case 'candidate':
-            mainWindow.webContents.send("candidate", data.candidate);
+            mainWindow.webContents.send("candidate", JSON.parse(data.candidate));
             break;
         case 'error':
             console.log(data.message);
@@ -102,8 +101,7 @@ function handleServerSocketData(data) {
 }
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
-ipcMain.on('WebRTCChannel', function(event, data) {
-    console.log(data)
+ipcMain.on('WebRTCChannel', function (event, data) {
     // data is {type, message}
     switch(data.type) {
         case 'offer':
@@ -134,15 +132,17 @@ function sendOffer(offer) {
 // Send answer response to connection offer.
 // Only the broadcaster should use this.
 function sendAnswer(answer) {
-    if(openSockets.length > 0) {
-        openSockets[0].write(JSON.toString({ type: 'answer', answer: answer }));
+    if (openSockets.length > 0) {
+        console.log('sending answer')
+        console.log(answer)
+        openSockets[0].write(JSON.stringify({ type: 'answer', answer: answer }));
     }
 }
 
 function sendIceCandidate(candidate) {
     if(openSockets.length > 0) {
         // Sending from server
-        openSockets[0].write(JSON.toString({ type: 'candidate', candidate: candidate }));
+        openSockets[0].write(JSON.stringify({ type: 'candidate', candidate: candidate }));
     } else {
         if(clientSocket) {
             clientSocket.write(JSON.stringify({ type: 'candidate', candidate: candidate }));
