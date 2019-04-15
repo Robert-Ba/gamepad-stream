@@ -50,12 +50,15 @@
             const { ipcRenderer, desktopCapturer } = electron;
 
             $(document).ready(function () {
+
+                // TODO: Would like use gamepad on start screen
                 window.addEventListener("gamepadconnected", function (e) {
                     console.log("Gamepad connected at index %d: %s. %d buttons, %d axes.",
                         e.gamepad.index, e.gamepad.id,
                         e.gamepad.buttons.length, e.gamepad.axes.length);
                 });
 
+                // List sources that can be streamed.
                 desktopCapturer.getSources({types: ['window', 'screen']}, function(err, sources) {
                     const windSelectionGroup = $('#window-option-list');
                     var checked = false;
@@ -82,6 +85,8 @@
                 $('#start-stream').attr('disabled', false);
                 alert(msg);
             });
+
+
 
             function joinStream(e) {
                 e.preventDefault();

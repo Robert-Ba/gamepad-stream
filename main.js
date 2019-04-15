@@ -6,28 +6,11 @@ const net = require('net');
 
 const { app, BrowserWindow, Menu, ipcMain } = electron;
 
-const temporaryControls = {
-    w: "Up",
-    a: "Left",
-    s: "Down",
-    d: "Right"
-}
-
-const listenerChannels = {
-    joinStream: 'stream:join',
-    exitStream: 'stream:exit',
-    startStream: 'stream:start',
-    stopStream: 'stream:stop',
-    sendStream: 'stream:send'
-};
-
-let startWindow;
+let mainWindow;
 
 // Server socket connection:
 var openSockets = [];
-var currentStreamSegment = 000;  // Remove this?
-var streamActive = false; // Remove this?
-var textChunk = '';
+var offerReceived = false;
 
 // Client socket connection:
 var clientSocket = undefined;
@@ -38,17 +21,7 @@ var server = net.createServer(function(socket) {
         openSockets.push(socket);
         socket.write('Stream connected\r\n');
         console.log('Viewer connected.')
-        socket.on('data', function (data) {
-            // Accept any controller input here.
-            textChunk = data.toString('utf8');
-
-            let control = temporaryControls[textChunk];
-            if (control) {
-                socket.write(control);
-            } else {
-                socket.write("Unknown input.");
-            }
-        });
+        socket.on('data', handleServerSocketData);
 
         socket.on('end', function () {
             console.log('Viewer disconnected')
@@ -58,18 +31,17 @@ var server = net.createServer(function(socket) {
             if(clientSocket) clientSocket.removeListener('data');
         });
     }
-    
 });
 server.maxConnections = 1;
 
 app.on('ready', function() {
-    startWindow = new BrowserWindow({
+    mainWindow = new BrowserWindow({
         width: 1350,
         height: 800
     });
     
-    startWindow.loadFile('./windows/views/startWindow.html');
-    startWindow.on('closed', function () {
+    mainWindow.loadFile('./windows/views/startWindow.html');
+    mainWindow.on('closed', function () {
         if(clientSocket) {
             clientSocket.end(); 
         }
@@ -83,62 +55,130 @@ app.on('ready', function() {
     initStartEvents();
 });
 
-// Start streaming
+// Open stream viewer
 function createStreamViewerWindow() {
-    startWindow.loadFile('./windows/views/streamWindow.html');
+    mainWindow.loadFile('./windows/views/streamWindow.html');
+    removeStartEvents();
     initStreamViewerEvents();
 }
 
+// Open broadcast window
 function createBroadcastStreamWindow() {
-    startWindow.loadFile('./windows/views/broadcastWindow.html');
+    mainWindow.loadFile('./windows/views/broadcastWindow.html');
+    removeStartEvents();
     initBroadcastEvents();
 }
 
+// msg parameter is an optional alert message.
 function createMainWindow(msg) {
-    startWindow.loadFile('./windows/views/startWindow.html');
+    mainWindow.loadFile('./windows/views/startWindow.html');
     initStartEvents();
 
-    
-    startWindow.webContents.once("did-finish-load", function () {
+    mainWindow.webContents.once("did-finish-load", function () {
         if(msg) {
-            startWindow.webContents.send("message", msg);
+            mainWindow.webContents.send("message", msg);
         }
     });
 }
 
-function initStartEvents() {
-    ipcMain.on('stream:join', function (e, ip) {
-        joinStream(ip);
-    });
+// When the server receives data on a socket
+function handleServerSocketData(data) {
+    data = JSON.parse(data.toString('utf8'));
 
+    switch(data.type) {
+        case 'offer':
+            mainWindow.webContents.send("offer", data.offer);
+            break;
+        case 'candidate':
+            mainWindow.webContents.send("candidate", data.candidate);
+            break;
+        case 'error':
+            console.log(data.message);
+            break;
+        default: 
+            openSockets[0].write(JSON.stringify({type: 'error', message: 'Invalid response.'}));
+            break;
+    }
+}
+
+// This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
+ipcMain.on('WebRTCChannel', function(event, data) {
+    // data is {type, message}
+    switch(data.type) {
+        case 'offer':
+            sendOffer(data.offer);
+            break;
+        case 'answer':
+            sendAnswer(data.answer);
+            break;
+        case 'candidate':
+            sendIceCandidate(data.candidate);
+            break;
+        default: break;
+    }
+});
+
+// From the stream viewer, send offer to broadcaster to view the stream.
+function sendOffer(offer) {
+    // Socket should already be opened. Just send the offer.
+    if(clientSocket && socket.readyState === socket.OPEN) {
+        clientSocket.write(JSON.stringify({ type: 'offer', offer: offer }));
+    }
+}
+
+// Send answer response to connection offer.
+// Only the broadcaster should use this.
+function sendAnswer(answer) {
+    if(openSockets.length > 0) {
+        openSockets[0].write(JSON.toString({ type: 'answer', answer: answer }));
+    }
+}
+
+function sendIceCandidate(candidate) {
+    if(openSockets.length > 0) {
+        openSockets[0].write(JSON.toString({ type: 'candidate', candidate: candidate }));
+    } else {
+        if(clientSocket) {
+            clientSocket.write(JSON.stringify({ type: 'candidate', candidate: candidate }));
+        }
+    }
+}
+
+function initStartEvents() {
     ipcMain.on('stream:start', function (e, windowId) {
         startStream(windowId);
     });
+
+    ipcMain.on('stream:join', function (e, ip) {
+        joinStream(ip);
+    });
 }
 
+// Join the stream hosted by the provided ip.
+// 1. Load stream viewer window
+// 2. Open socket.
+// 3. Receive offer object from window. Send offer when socket is ready.
 function joinStream(ip) {
     if (clientSocket) {
         clientSocket.end();
     }
 
-    removeAllListeners();
     createStreamViewerWindow();
+    startStreamViewerSocket(ip);
+}
 
-    startWindow.webContents.once("did-finish-load", function () {
-        // Connect to server
+// Connect to the broadcast server running on the streamers pc
+function startStreamViewerSocket(ip) {
+    mainWindow.webContents.once("did-finish-load", function () {
         clientSocket = new net.Socket();
         clientSocket.connect(4000, ip);
 
         clientSocket.on('error', function (err) {
-            startWindow.webContents.send("message", 'Could not connect to ' + ip);
+            mainWindow.webContents.send("message", 'Could not connect to ' + ip);
         });
 
-        clientSocket.on('data', function(data) {
-            console.log('data')
-            if(startWindow) {
-                startWindow.webContents.send("videoStream", data);
-            }
-        });
+        // As the stream viewer: receive answer to offer and/or ice candidate
+        clientSocket.on('data', handleClientSocketData);
     
         clientSocket.on('end', function() {
             clientSocket = undefined;
@@ -146,21 +186,42 @@ function joinStream(ip) {
     });
 }
 
+// On receiving data from the server
+function handleClientSocketData(data) {
+    data = JSON.parse(data.toString('utf8'));
+    
+    if(mainWindow) {
+        switch(data.type) {
+            case 'answer':
+                startWindow.webContents.send('answer', data.answer);
+                break;
+            case 'candidate':
+                startWindow.webContents.send('answer', data.candidate);
+                break;
+            case 'error':
+                console.log(data.message);
+                break;
+            default: break;
+        }
+    }
+}
+
+// Open broadcast window, start server, and accept offers to for WebRTC
 function startStream(windowId) {
-    removeAllListeners();
     createBroadcastStreamWindow();
-    startWindow.webContents.once("did-finish-load", function () {
+    mainWindow.webContents.once("did-finish-load", function () {
         startServer();
 
         // Start streaming after starting server.
-        startWindow.webContents.send("captureWindow", windowId);
+        // Need this to send the id of the window to capture
+        mainWindow.webContents.send("captureWindow", windowId);
     });
 }
 
 function initStreamViewerEvents() {
     ipcMain.on('stream:exit', function(e) {
-        removeAllListeners();
         clientSocket.end();
+        removeStreamViewerEvents();
         createMainWindow();
     });
 }
@@ -168,25 +229,24 @@ function initStreamViewerEvents() {
 function initBroadcastEvents() {
     ipcMain.on('stream:stop', function (e) {
         //mainWindow.webContents.send('item:add', item);
-    
+        
         // Stop listening on port.
         stopServer();
-        removeAllListeners();
+        removeBroadcastEvents();
         createMainWindow();
-    });
-
-    ipcMain.on('stream:send', function(e, buffer) {
-        if(openSockets.length > 0) {
-            console.log('writing to client')
-            openSockets[0].write(buffer);
-        } else {
-            console.log('No client');
-        }
     });
 }
 
-function removeAllListeners() {
-    ipcMain.removeAllListeners();
+function removeBroadcastEvents() {
+    ipcMain.removeAllListeners(['stream:stop']);
+}
+
+function removeStreamViewerEvents() {
+    ipcMain.removeAllListeners(['stream:exit']);
+}
+
+function removeStartEvents() {
+    ipcMain.removeAllListeners(['stream:start', 'stream:join']);
 }
 
 function startServer() {
