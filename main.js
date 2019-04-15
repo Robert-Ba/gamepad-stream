@@ -101,12 +101,7 @@ function handleServerSocketData(data) {
 }
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
-<<<<<<< HEAD
 ipcMain.on('WebRTCChannel', function(event, data) {
-    
-=======
-ipcMain.on('WebRTCChannel', function (event, data) {
->>>>>>> 3fcd0ea9c7340bfd9b5b0b272e1cf326628bb343
     // data is {type, message}
     switch(data.type) {
         case 'offer':
