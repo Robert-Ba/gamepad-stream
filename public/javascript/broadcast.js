@@ -11,7 +11,7 @@ var connectedUser;
 //when the browser finds an ice candidate we send it to another peer 
 myConnection.onicecandidate = function (event) {
     if (event.candidate) {
-        ipcRenderer.send("stream:iceCandidate", event.candidate);
+        ipcRenderer.send("WebRTCChannel", {type: 'candidate', candidate: JSON.stringify(event.candidate)});
     }
 }; 
 
@@ -32,7 +32,7 @@ ipcRenderer.on("offer", function(event, offer, name) {
     myConnection.createAnswer(function (answer) {
         myConnection.setLocalDescription(answer);
 
-        ipcRenderer.send("WebRTCChannel", {type: "answer", message: answer});
+        ipcRenderer.send("WebRTCChannel", {type: "answer", message: JSON.stringify(answer)});
 
     }, function (error) {
         alert("error");

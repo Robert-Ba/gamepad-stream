@@ -49,7 +49,6 @@ const main = async (function* main() {
                         console.groupEnd("" + i); i++;
                         return Promise.reject(err);
                     }
-                    
                 }));
             }
         });

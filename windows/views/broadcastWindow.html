@@ -6,120 +6,14 @@
             if (typeof module === 'object') {window.module = module; module = undefined;}
     </script>
     <script src="../../node_modules/jquery/dist/jquery.slim.min.js"></script>
+    <script src="../../public/javascript/broadcast.js"></script>
 </head>
 <body>
     <p>Stream is active.</p>
     <button id="stop-stream">Stop streaming</button>
     <video width="320" height="240"></video>
     <script type="text/javascript">
-        const electron = require('electron');
-        const { ipcRenderer, desktopCapturer } = electron;
-
-        $(document).ready(function () {
-            $('#stop-stream').click(stopStream);
-        });
-
-        function stopStream(e) {
-            e.preventDefault();
-
-            ipcRenderer.send('stream:stop');
-        }
-        
-        // Remove this. I don't think I need any server calls going to the UI.
-        ipcRenderer.on("request", function (event, req, port) {
-            var doc = document.implementation.createHTMLDocument(req.url);
-            var h1 = doc.createElement("h1");
-            h1.textContent = "Hello DOM: " + req.url;
-            doc.body.appendChild(h1);
-
-            ipcRenderer.send(port, 200, { "content-type": "text/html;charset=UTF-8" },
-                doc.documentElement.outerHTML);
-        });
-
-        // Begin capturing a specific window.
-        ipcRenderer.on("captureWindow", function(event, windowId) {
-            startCapture(windowId);
-        })
-
-        function startCapture(windowId) {
-            desktopCapturer.getSources({ types: ['window', 'screen'] }, (error, sources) => {
-                if (error) throw error
-                for (let i = 0; i < sources.length; ++i) {
-                    if (sources[i].id === windowId) {
-                        navigator.mediaDevices.getUserMedia({
-                            audio: false,
-                            video: {
-                                mandatory: {
-                                    chromeMediaSource: 'desktop',
-                                    chromeMediaSourceId: sources[i].id,
-                                    minWidth: 1280,
-                                    maxWidth: 1280,
-                                    minHeight: 720,
-                                    maxHeight: 720
-                                }
-                            }
-                        }).then((stream) => handleStream(stream))
-                            .catch((e) => handleError(e))
-                        return
-                    }
-                }
-            })
-        }
-
-        function handleStream(stream) {
-            const video = document.querySelector('video');
-
-            video.srcObject = stream;
-
-
-            // This could be too slow. Need to test.
-            video.onloadedmetadata = () => {
-                video.play();
-                var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs="opus,vp8"'});
-                
-                // Trying a different method using mediaRecorder instead of canvas
-                mediaRecorder.ondataavailable = function (e) {
-                    //console.log(e.data)
-                    //let newBlob = new Blob([e.data]);
-                    toBuffer(e.data, function(err, buffer) {
-                        ipcRenderer.send('stream:send', buffer);
-                    });
-                }
-
-                mediaRecorder.start(40);
-
-                // TODO: Next I need to send buffer to server
-                // setInterval(() => {
-                //     console.log('Stream interval send')
-                //     const canvas = document.createElement('canvas');
-                //     canvas.getContext('2d').drawImage(video, 0, 0, 800, 800);
-                //     canvas.toBlob(blob => {
-                //         toBuffer(blob, function (err, buffer) {
-                //             if (err) throw err;
-                //             // TODO: send buffer to any connected clients
-                //             ipcRenderer.send('stream:send', buffer);
-                //         });
-                //     });
-                // }, 40);
-            }
-        }
-
-        function toBuffer(blob, cb) {
-            var reader = new FileReader()
-
-            function onLoadEnd(e) {
-                reader.removeEventListener('loadend', onLoadEnd, false)
-                if (e.error) cb(e.error)
-                else cb(null, Buffer.from(reader.result))
-            }
-
-            reader.addEventListener('loadend', onLoadEnd, false)
-            reader.readAsArrayBuffer(blob)
-        }
-
-        function handleError(e) {
-            console.log(e)
-        }
+       
     </script>
 </body>
 </html>
