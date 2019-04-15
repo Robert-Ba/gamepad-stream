@@ -24,7 +24,8 @@ function onCandidate(candidate) {
 }
 
 // Handle offers to connect.
-ipcRenderer.on("offer", function(event, offer) {
+ipcRenderer.on("offer", function (event, offer) {
+    console.log(offer)
     myConnection.setRemoteDescription(new RTCSessionDescription(offer));
 
     myConnection.createAnswer(function (answer) {
@@ -81,7 +82,7 @@ function startCapture(windowId) {
 
 function readStream(stream) {
     const video = document.querySelector('video');
-
+    
     video.srcObject = stream;
 
     // This could be too slow. Need to test.
@@ -91,8 +92,10 @@ function readStream(stream) {
         
         //mediaRecorder.ondataavailable = function (e) {
             // TODO: Use WebRTC
-
-            myConnection.addStream(stream);
+        for (const track of stream.getTracks()) {
+            myConnection.addTrack(track, stream);
+        }
+        
 
             //console.log(e.data)
             //let newBlob = new Blob([e.data]);

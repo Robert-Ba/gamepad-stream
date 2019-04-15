@@ -132,7 +132,6 @@ function sendOffer(offer) {
 function sendAnswer(answer) {
     if (openSockets.length > 0) {
         console.log('sending answer')
-        console.log(answer)
         openSockets[0].write(JSON.stringify({ type: 'answer', answer: answer }));
     }
 }
