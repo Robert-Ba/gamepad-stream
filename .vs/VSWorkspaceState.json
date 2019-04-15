@@ -3,10 +3,10 @@
     "",
     "\\public",
     "\\public\\javascript",
-    "\\public\\media",
     "\\public\\styles",
     "\\windows",
     "\\windows\\views"
   ],
+  "SelectedNode": "\\main.js",
   "PreviewInSolutionExplorer": false
 }

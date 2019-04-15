@@ -19,7 +19,6 @@ var server = net.createServer(function(socket) {
     // Only one open socket allowed
     if(openSockets.length === 0) {
         openSockets.push(socket);
-        socket.write('Stream connected\r\n');
         console.log('Viewer connected.')
         socket.on('data', handleServerSocketData);
 
@@ -84,6 +83,7 @@ function createMainWindow(msg) {
 // When the server receives data on a socket
 function handleServerSocketData(data) {
     data = JSON.parse(data.toString('utf8'));
+    
 
     switch(data.type) {
         case 'offer':
