@@ -51,7 +51,7 @@ app.on('ready', function() {
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
     Menu.setApplicationMenu(mainMenu);
 
-    initStartEvents();
+    initStartEvents();    
 });
 
 // Open stream viewer
@@ -103,6 +103,7 @@ function handleServerSocketData(data) {
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
 ipcMain.on('WebRTCChannel', function(event, data) {
+    console.log(data)
     // data is {type, message}
     switch(data.type) {
         case 'offer':
@@ -120,8 +121,12 @@ ipcMain.on('WebRTCChannel', function(event, data) {
 
 // From the stream viewer, send offer to broadcaster to view the stream.
 function sendOffer(offer) {
+    console.log('attempting to send socket')
+    console.log(clientSocket.readyState === clientSocket.OPEN)
+
     // Socket should already be opened. Just send the offer.
-    if(clientSocket && socket.readyState === socket.OPEN) {
+    if(clientSocket && clientSocket.readyState === clientSocket.OPEN) {
+        console.log('Sending offer')
         clientSocket.write(JSON.stringify({ type: 'offer', offer: offer }));
     }
 }
@@ -136,6 +141,7 @@ function sendAnswer(answer) {
 
 function sendIceCandidate(candidate) {
     if(openSockets.length > 0) {
+        // Sending from server
         openSockets[0].write(JSON.toString({ type: 'candidate', candidate: candidate }));
     } else {
         if(clientSocket) {
@@ -145,11 +151,11 @@ function sendIceCandidate(candidate) {
 }
 
 function initStartEvents() {
-    ipcMain.on('stream:start', function (e, windowId) {
+    ipcMain.once('stream:start', function (e, windowId) {
         startStream(windowId);
     });
 
-    ipcMain.on('stream:join', function (e, ip) {
+    ipcMain.once('stream:join', function (e, ip) {
         joinStream(ip);
     });
 }
@@ -188,21 +194,25 @@ function startStreamViewerSocket(ip) {
 
 // On receiving data from the server
 function handleClientSocketData(data) {
-    data = JSON.parse(data.toString('utf8'));
-    
-    if(mainWindow) {
-        switch(data.type) {
-            case 'answer':
-                startWindow.webContents.send('answer', data.answer);
-                break;
-            case 'candidate':
-                startWindow.webContents.send('answer', data.candidate);
-                break;
-            case 'error':
-                console.log(data.message);
-                break;
-            default: break;
+    try {
+        data = JSON.parse(data.toString('utf8'));
+
+        if(mainWindow) {
+            switch(data.type) {
+                case 'answer':
+                    startWindow.webContents.send('answer', data.answer);
+                    break;
+                case 'candidate':
+                    startWindow.webContents.send('answer', data.candidate);
+                    break;
+                case 'error':
+                    console.log(data.message);
+                    break;
+                default: break;
+            }
         }
+    } catch(err) {
+        console.log('Could not read server response.')
     }
 }
 
@@ -219,30 +229,20 @@ function startStream(windowId) {
 }
 
 function initStreamViewerEvents() {
-    ipcMain.on('stream:exit', function(e) {
+    ipcMain.once('stream:exit', function(e) {
         clientSocket.end();
-        removeStreamViewerEvents();
         createMainWindow();
     });
 }
 
 function initBroadcastEvents() {
-    ipcMain.on('stream:stop', function (e) {
+    ipcMain.once('stream:stop', function (e) {
         //mainWindow.webContents.send('item:add', item);
         
         // Stop listening on port.
         stopServer();
-        removeBroadcastEvents();
         createMainWindow();
     });
-}
-
-function removeBroadcastEvents() {
-    ipcMain.removeAllListeners(['stream:stop']);
-}
-
-function removeStreamViewerEvents() {
-    ipcMain.removeAllListeners(['stream:exit']);
 }
 
 function removeStartEvents() {

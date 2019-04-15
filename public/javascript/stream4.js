@@ -16,10 +16,12 @@ const streamMediaSource = new MediaSource();
 
 const url = URL.createObjectURL(streamMediaSource);
 
-videoTag = document.querySelector('video');
-videoTag.src = url;
-streamMediaSource.addEventListener('sourceopen', callback);
-videoTag.play();
+$(document).ready(function() {
+    videoTag = document.querySelector('video');
+    videoTag.src = url;
+    streamMediaSource.addEventListener('sourceopen', callback);
+    videoTag.play();
+});
 
 function callback(e) {
     console.log('source opened')
@@ -29,15 +31,24 @@ function callback(e) {
         .addSourceBuffer('video/webm; codecs="opus,vp8"'); //  codecs="vp8"
 
 
-    // 1. Make offer object and send to connected server
+    // Make offer object and send to connected server
     myConnection.createOffer(function (offer) {
-        ipcRenderer.send('WebRTCChannel', offer);
+        console.log(offer)
+        ipcRenderer.send('WebRTCChannel', { type: 'offer', offer: JSON.stringify(offer)});
 
         myConnection.setLocalDescription(offer);
     }, function (error) {
         alert("An error has occurred.");
     });
 }
+
+//setup ice handling
+//when the browser finds an ice candidate we send it to another peer 
+myConnection.onicecandidate = function (event) {
+    if (event.candidate) {
+        ipcRenderer.send("WebRTCChannel", {type: 'candidate', candidate: JSON.stringify(event.candidate)});
+    }
+};
 
 // Handle any answers 
 ipcRenderer.on('answer', function(e, answer) {
