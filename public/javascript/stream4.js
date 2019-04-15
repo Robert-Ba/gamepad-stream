@@ -12,24 +12,15 @@ var offer = undefined;
 
 var playStream = true;
 var videoTag = undefined;
-const streamMediaSource = new MediaSource();
-
-const url = URL.createObjectURL(streamMediaSource);
 
 $(document).ready(function() {
     videoTag = document.querySelector('video');
-    videoTag.src = url;
-    streamMediaSource.addEventListener('sourceopen', callback);
+    //streamMediaSource.addEventListener('sourceopen', callback);
     videoTag.play();
-});
 
-function callback(e) {
-    console.log('source opened')
-    const audioSourceBuffer = streamMediaSource
-        .addSourceBuffer('audio/mp4; codecs="mp4a.40.2"');
-    const videoSourceBuffer = streamMediaSource
-        .addSourceBuffer('video/webm; codecs="opus,vp8"'); //  codecs="vp8"
-
+    myConnection.onaddstream = function (e) {
+        videoTag.src = window.URL.createObjectURL(e.stream);
+    };
 
     // Make offer object and send to connected server
     myConnection.createOffer(function (offer) {
@@ -40,7 +31,7 @@ function callback(e) {
     }, function (error) {
         alert("An error has occurred.");
     });
-}
+});
 
 //setup ice handling
 //when the browser finds an ice candidate we send it to another peer 

@@ -5,7 +5,6 @@ var configuration = {
 };
 
 const myConnection = new webkitRTCPeerConnection(configuration);
-var connectedUser;
 
 //setup ice handling
 //when the browser finds an ice candidate we send it to another peer 
@@ -25,14 +24,13 @@ function onCandidate(candidate) {
 }
 
 // Handle offers to connect.
-ipcRenderer.on("offer", function(event, offer, name) {
-    connectedUser = name;
+ipcRenderer.on("offer", function(event, offer) {
     myConnection.setRemoteDescription(new RTCSessionDescription(offer));
 
     myConnection.createAnswer(function (answer) {
         myConnection.setLocalDescription(answer);
 
-        ipcRenderer.send("WebRTCChannel", {type: "answer", message: JSON.stringify(answer)});
+        ipcRenderer.send("WebRTCChannel", {type: "answer", answer: JSON.stringify(answer)});
 
     }, function (error) {
         alert("error");
@@ -89,19 +87,21 @@ function readStream(stream) {
     // This could be too slow. Need to test.
     video.onloadedmetadata = () => {
         video.play();
-        var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs="opus,vp8"'});
+        //var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs="opus,vp8"'});
         
-        mediaRecorder.ondataavailable = function (e) {
+        //mediaRecorder.ondataavailable = function (e) {
             // TODO: Use WebRTC
+
+            myConnection.addStream(stream);
 
             //console.log(e.data)
             //let newBlob = new Blob([e.data]);
             // toBuffer(e.data, function(err, buffer) {
             //     ipcRenderer.send('stream:send', buffer);
             // });
-        }
+        //}
 
-        mediaRecorder.start(40);
+        //mediaRecorder.start(40);
     }
 }
 
