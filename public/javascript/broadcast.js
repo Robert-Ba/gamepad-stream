@@ -62,6 +62,10 @@ function readStream(stream) {
         broadcastingPeer = new Peer({initiator: false, stream: stream});
 
         broadcastingPeer.on('signal', function(data) {
+            if(data.candidate) {
+                data = data.candidate;
+            }
+            
             ipcRenderer.send('WebRTCChannel', JSON.stringify(data));
         });
     }
