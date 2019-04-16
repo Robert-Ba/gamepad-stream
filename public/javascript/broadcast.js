@@ -4,7 +4,9 @@ var configuration = {
     "iceServers": [{ "url": "stun:stun.1.google.com:19302" }]
 };
 
-const myConnection = new webkitRTCPeerConnection(configuration);
+//const TRCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection;
+
+const myConnection = new RTCPeerConnection(configuration);
 
 //setup ice handling
 //when the browser finds an ice candidate we send it to another peer 
@@ -26,7 +28,7 @@ function onCandidate(candidate) {
 // Handle offers to connect.
 ipcRenderer.on("offer", function (event, offer) {
     console.log(offer)
-    myConnection.setRemoteDescription(new RTCSessionDescription(offer));
+    myConnection.setRemoteDescription(offer); //new RTCSessionDescription(offer)
 
     myConnection.createAnswer(function (answer) {
         myConnection.setLocalDescription(answer);
