@@ -1,45 +1,24 @@
 const electron = require('electron');
 const { ipcRenderer, desktopCapturer } = electron;
-var configuration = {
-    "iceServers": [{ "url": "stun:stun.1.google.com:19302" }]
-};
+const Peer = require('simple-peer');
 
-//const TRCPeerConnection = window.RTCPeerConnection || window.webkitRTCPeerConnection;
+// We are requesting to view the stream.
+var broadcastingPeer = undefined;
 
-const myConnection = new RTCPeerConnection(configuration);
-
-//setup ice handling
-//when the browser finds an ice candidate we send it to another peer 
-myConnection.onicecandidate = function (event) {
-    if (event.candidate) {
-        ipcRenderer.send("WebRTCChannel", {type: 'candidate', candidate: JSON.stringify(event.candidate)});
-    }
-}; 
-
-// Receive ice candidate from another user
-ipcRenderer.on("candidate", function(event, candidate){
-    onCandidate(candidate);
-});
-//when we get ice candidate from another user 
-function onCandidate(candidate) {
-    myConnection.addIceCandidate(new RTCIceCandidate(candidate));
-}
+var activeStream = undefined;
 
 // Handle offers to connect.
 ipcRenderer.on("offer", function (event, offer) {
-    console.log(offer)
-    myConnection.setRemoteDescription(offer); //new RTCSessionDescription(offer)
-
-    myConnection.createAnswer(function (answer) {
-        myConnection.setLocalDescription(answer);
-
-        ipcRenderer.send("WebRTCChannel", {type: "answer", answer: JSON.stringify(answer)});
-
-    }, function (error) {
-        alert("error");
-    });
+    broadcastingPeer.signal(offer);
 });
 
+viewerPeer.on('signal', function(offer) {
+    if(offer.type === 'answer') {
+        ipcRenderer.send('WebRTCChannel', { type: 'answer', offer: JSON.stringify(offer)});
+    } else {
+        ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
+    }
+});
 
 $(document).ready(function () {
     $('#stop-stream').click(stopStream);
@@ -47,7 +26,6 @@ $(document).ready(function () {
 
 function stopStream(e) {
     e.preventDefault();
-
     ipcRenderer.send('stream:stop');
 }
 
@@ -81,34 +59,23 @@ function startCapture(windowId) {
     })
 }
 
-
 function readStream(stream) {
     const video = document.querySelector('video');
     
     video.srcObject = stream;
+    activeStream = stream;
 
-    // This could be too slow. Need to test.
     video.onloadedmetadata = () => {
         video.play();
-        //var mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs="opus,vp8"'});
-        
-        //mediaRecorder.ondataavailable = function (e) {
-            // TODO: Use WebRTC
-        for (const track of stream.getTracks()) {
-            myConnection.addTrack(track, stream);
-        }
-        
-
-            //console.log(e.data)
-            //let newBlob = new Blob([e.data]);
-            // toBuffer(e.data, function(err, buffer) {
-            //     ipcRenderer.send('stream:send', buffer);
-            // });
-        //}
-
-        //mediaRecorder.start(40);
+        broadcastingPeer = new Peer({initiator: false, stream: stream);
     }
 }
+
+// answerOptions: {
+//     stream: [activeStream],
+//     offerToReceiveVideo: false,
+//     offerToReceiveAudio: false
+// }
 
 function toBuffer(blob, cb) {
     var reader = new FileReader()

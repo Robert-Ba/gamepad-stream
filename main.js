@@ -4,7 +4,7 @@ const path = require('path');
 
 const net = require('net');
 
-const { app, BrowserWindow, Menu, ipcMain } = electron;
+const { app, BrowserWindow, Menu, ipcMain, protocol } = electron;
 
 let mainWindow;
 
@@ -119,7 +119,6 @@ ipcMain.on('WebRTCChannel', function(event, data) {
 
 // From the stream viewer, send offer to broadcaster to view the stream.
 function sendOffer(offer) {
-
     // Socket should already be opened. Just send the offer.
     if(clientSocket) {
         console.log('Sending offer')
@@ -166,26 +165,27 @@ function joinStream(ip) {
         clientSocket.end();
     }
 
+    
     createStreamViewerWindow();
-    startStreamViewerSocket(ip);
+    mainWindow.webContents.once("did-finish-load", function () {
+        startStreamViewerSocket(ip);
+    });
 }
 
 // Connect to the broadcast server running on the streamers pc
 function startStreamViewerSocket(ip) {
-    mainWindow.webContents.once("did-finish-load", function () {
-        clientSocket = new net.Socket();
-        clientSocket.connect(4000, ip);
+    clientSocket = new net.Socket();
+    clientSocket.connect(4000, ip);
 
-        clientSocket.on('error', function (err) {
-            mainWindow.webContents.send("message", 'Could not connect to ' + ip);
-        });
+    clientSocket.on('error', function (err) {
+        createMainWindow('Could not connect to ' + ip);
+    });
 
-        // As the stream viewer: receive answer to offer and/or ice candidate
-        clientSocket.on('data', handleClientSocketData);
-    
-        clientSocket.on('end', function() {
-            clientSocket = undefined;
-        });
+    // As the stream viewer: receive answer to offer and/or ice candidate
+    clientSocket.on('data', handleClientSocketData);
+
+    clientSocket.on('end', function() {
+        clientSocket = undefined;
     });
 }
 

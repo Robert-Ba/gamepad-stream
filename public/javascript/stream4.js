@@ -2,41 +2,37 @@
 
 const electron = require('electron');
 const { ipcRenderer } = electron;
+const Peer = require('simple-peer');
 
-var configuration = {
-    "iceServers": [{ "url": "stun:stun.1.google.com:19302" }]
-};
-var myConnection = undefined;
-var connectedUser;
-var offer = undefined;
+// We are requesting to view the stream.
+const viewerPeer = new Peer({ initiator: true });
 
-var playStream = true;
-var videoTag = undefined;
+// offerOptions: {
+//     offerToReceiveVideo: true,
+//     offerToReceiveAudio: true
+// } 
+
+var video = undefined;
 
 $(document).ready(function() {
-    videoTag = document.querySelector('video');
-    //streamMediaSource.addEventListener('sourceopen', callback);
-    myConnection = new RTCPeerConnection(configuration);
-    myConnection.ontrack = function (e) {
-        console.log('Stream added.');
-        videoTag.srcObject = window.URL.createObjectURL(e.streams[0]);
-        videoTag.play();
-    };
+    video = document.querySelector('video');
 
-    //when the browser finds an ice candidate we send it to another peer 
-    myConnection.onicecandidate = function (event) {
-        if (event.candidate) {
-            ipcRenderer.send("WebRTCChannel", { type: 'candidate', candidate: JSON.stringify(event.candidate) });
+    // With simple-peer: this event could provide a webrtc offer OR ice candidate.
+    viewerPeer.on('signal', function(offer) {
+        if(offer.type === 'offer') {
+            ipcRenderer.send('WebRTCChannel', { type: 'offer', offer: JSON.stringify(offer)});
+        } else {
+            ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
         }
-    };
+    });
 
-    // Make offer object and send to connected server
-    myConnection.createOffer(function (offer) {
-        myConnection.setLocalDescription(offer);
-        ipcRenderer.send('WebRTCChannel', { type: 'offer', offer: JSON.stringify(offer)});
-        console.log(myConnection.getConfiguration)
-    }, function (error) {
-        alert("An error has occurred.");
+    viewerPeer.on('stream', function(stream) {
+        video.src = URL.createObjectURL(stream);
+        video.play();
+    });
+
+    viewerPeer.on('connect', function() {
+        // TODO: Send controls over datastream
     });
 });
 
@@ -44,16 +40,12 @@ $(document).ready(function() {
 ipcRenderer.on('answer', function(e, answer) {
     console.log('Received answer ('+answer.type+'):')
     console.log(answer)
-    myConnection.setRemoteDescription(answer); //new RTCSessionDescription(answer)
+    viewerPeer.signal(answer);
 });
 
-// Receive ice candidate from another user
+// Receive ice candidate from another peer
 ipcRenderer.on("candidate", function(event, candidate){
-    onCandidate(candidate);
-});
-//when we get ice candidate from another user 
-function onCandidate(candidate) {
     console.log('Received candidate')
     console.log(candidate)
-    myConnection.addIceCandidate(new RTCIceCandidate(candidate));
-}
+    viewerPeer.signal(candidate);
+});
