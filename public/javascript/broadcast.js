@@ -12,14 +12,6 @@ ipcRenderer.on("offer", function (event, offer) {
     broadcastingPeer.signal(offer);
 });
 
-viewerPeer.on('signal', function(offer) {
-    if(offer.type === 'answer') {
-        ipcRenderer.send('WebRTCChannel', { type: 'answer', offer: JSON.stringify(offer)});
-    } else {
-        ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
-    }
-});
-
 $(document).ready(function () {
     $('#stop-stream').click(stopStream);
 });
@@ -67,7 +59,15 @@ function readStream(stream) {
 
     video.onloadedmetadata = () => {
         video.play();
-        broadcastingPeer = new Peer({initiator: false, stream: stream);
+        broadcastingPeer = new Peer({initiator: false, stream: stream});
+
+        broadcastingPeer.on('signal', function(offer) {
+            if(offer.type === 'answer') {
+                ipcRenderer.send('WebRTCChannel', { type: 'answer', offer: JSON.stringify(offer)});
+            } else {
+                ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
+            }
+        });
     }
 }
 
