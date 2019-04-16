@@ -82,15 +82,18 @@ function createMainWindow(msg) {
 
 // When the server receives data on a socket
 function handleServerSocketData(data) {
+    console.log("New message")
     try {
         var splitData = data.toString('utf8').split('9BREAK9');
         splitData.pop();
+
+        console.log(splitData);
 
         splitData.forEach((d) => {
             mainWindow.webContents.send("RTCMessage", JSON.parse(d));
         });
     } catch(err) {
-        console.log('Could not read server response.')
+        console.log('Could not read client message.')
     }
 }
 
