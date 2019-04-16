@@ -68,7 +68,7 @@ function readStream(stream) {
 }
 
 ipcRenderer.on("RTCMessage", function(event, message) {
-    viewerPeer.signal(message);
+    broadcastingPeer.signal(message);
 });
 
 // answerOptions: {
