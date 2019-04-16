@@ -84,7 +84,7 @@ function createMainWindow(msg) {
 function handleServerSocketData(data) {
     try {
         var splitData = data.toString('utf8').split('9BREAK9');
-        splitData.pup();
+        splitData.pop();
 
         splitData.forEach((d) => {
             mainWindow.webContents.send("RTCMessage", JSON.parse(d));
@@ -154,7 +154,7 @@ function startStreamViewerSocket(ip) {
 function handleClientSocketData(data) {
     try {
         var splitData = data.toString('utf8').split('9BREAK9');
-        splitData.pup();
+        splitData.pop();
 
         splitData.forEach((d) => {
             mainWindow.webContents.send("RTCMessage", JSON.parse(d));
