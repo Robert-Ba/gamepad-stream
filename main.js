@@ -92,8 +92,14 @@ function handleServerSocketData(data) {
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
 ipcMain.on('WebRTCChannel', function(event, data) {
-    clientSocket.write(data);
-    return;
+    if(clientSocket) {
+        clientSocket.write(data);
+    } else {
+        if(openSockets.length > 0) {
+            openSockets[0].write(data);
+        }
+    }
+    
 });
 
 function initStartEvents() {
