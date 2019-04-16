@@ -61,15 +61,15 @@ function readStream(stream) {
         video.play();
         broadcastingPeer = new Peer({initiator: false, stream: stream});
 
-        broadcastingPeer.on('signal', function(offer) {
-            if(offer.type === 'answer') {
-                ipcRenderer.send('WebRTCChannel', { type: 'answer', offer: JSON.stringify(offer)});
-            } else {
-                ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
-            }
+        broadcastingPeer.on('signal', function(data) {
+            ipcRenderer.send('WebRTCChannel', JSON.stringify(data));
         });
     }
 }
+
+ipcRenderer.on("RTCMessage", function(event, message) {
+    viewerPeer.signal(message);
+});
 
 // answerOptions: {
 //     stream: [activeStream],

@@ -19,11 +19,7 @@ $(document).ready(function() {
 
     // With simple-peer: this event could provide a webrtc offer OR ice candidate.
     viewerPeer.on('signal', function(offer) {
-        if(offer.type === 'offer') {
-            ipcRenderer.send('WebRTCChannel', { type: 'offer', offer: JSON.stringify(offer)});
-        } else {
-            ipcRenderer.send('WebRTCChannel', { type: 'candidate', offer: JSON.stringify(offer)});
-        }
+        ipcRenderer.send('WebRTCChannel', JSON.stringify(offer));
     });
 
     viewerPeer.on('stream', function(stream) {
@@ -48,4 +44,8 @@ ipcRenderer.on("candidate", function(event, candidate){
     console.log('Received candidate')
     console.log(candidate)
     viewerPeer.signal(candidate);
+});
+
+ipcRenderer.on("RTCMessage", function(event, message) {
+    viewerPeer.signal(message);
 });

@@ -82,69 +82,19 @@ function createMainWindow(msg) {
 
 // When the server receives data on a socket
 function handleServerSocketData(data) {
-    data = JSON.parse(data.toString('utf8'));
-
-    switch(data.type) {
-        case 'offer':
-            mainWindow.webContents.send("offer", JSON.parse(data.offer));
-            break;
-        case 'candidate':
-            mainWindow.webContents.send("candidate", JSON.parse(data.candidate));
-            break;
-        case 'error':
-            console.log(data.message);
-            break;
-        default: 
-            openSockets[0].write(JSON.stringify({type: 'error', message: 'Invalid response.'}));
-            break;
+    try {
+        data = JSON.parse(data.toString('utf8'));
+        mainWindow.webContents.send("RTCMessage", data);
+    } catch(err) {
+        console.log('Could not read server response.')
     }
 }
 
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
 ipcMain.on('WebRTCChannel', function(event, data) {
-    // data is {type, message}
-    switch(data.type) {
-        case 'offer':
-            sendOffer(data.offer);
-            break;
-        case 'answer':
-            sendAnswer(data.answer);
-            break;
-        case 'candidate':
-            sendIceCandidate(data.candidate);
-            break;
-        default: break;
-    }
+    clientSocket.write(data);
+    return;
 });
-
-// From the stream viewer, send offer to broadcaster to view the stream.
-function sendOffer(offer) {
-    // Socket should already be opened. Just send the offer.
-    if(clientSocket) {
-        console.log('Sending offer')
-        clientSocket.write(JSON.stringify({ type: 'offer', offer: offer }));
-    }
-}
-
-// Send answer response to connection offer.
-// Only the broadcaster should use this.
-function sendAnswer(answer) {
-    if (openSockets.length > 0) {
-        console.log('sending answer')
-        openSockets[0].write(JSON.stringify({ type: 'answer', answer: answer }));
-    }
-}
-
-function sendIceCandidate(candidate) {
-    if(openSockets.length > 0) {
-        // Sending from server
-        openSockets[0].write(JSON.stringify({ type: 'candidate', candidate: candidate }));
-    } else {
-        if(clientSocket) {
-            clientSocket.write(JSON.stringify({ type: 'candidate', candidate: candidate }));
-        }
-    }
-}
 
 function initStartEvents() {
     ipcMain.once('stream:start', function (e, windowId) {
@@ -193,21 +143,7 @@ function startStreamViewerSocket(ip) {
 function handleClientSocketData(data) {
     try {
         data = JSON.parse(data.toString('utf8'));
-
-        if(mainWindow) {
-            switch(data.type) {
-                case 'answer':
-                    mainWindow.webContents.send('answer', JSON.parse(data.answer));
-                    break;
-                case 'candidate':
-                    mainWindow.webContents.send('candidate', JSON.parse(data.candidate));
-                    break;
-                case 'error':
-                    console.log(data.message);
-                    break;
-                default: break;
-            }
-        }
+        mainWindow.webContents.send("RTCMessage", data);
     } catch(err) {
         console.log('Could not read server response.')
     }
