@@ -83,8 +83,12 @@ function createMainWindow(msg) {
 // When the server receives data on a socket
 function handleServerSocketData(data) {
     try {
-        data = JSON.parse(data.toString('utf8'));
-        mainWindow.webContents.send("RTCMessage", data);
+        var splitData = data.toString('utf8').split('9BREAK9');
+        splitData.pup();
+
+        splitData.forEach((d) => {
+            mainWindow.webContents.send("RTCMessage", JSON.parse(d));
+        });
     } catch(err) {
         console.log('Could not read server response.')
     }
@@ -93,10 +97,11 @@ function handleServerSocketData(data) {
 // This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
 ipcMain.on('WebRTCChannel', function(event, data) {
     if(clientSocket) {
-        clientSocket.write(data);
+        // I'm sorry for this...
+        clientSocket.write(data+"9BREAK9");
     } else {
         if(openSockets.length > 0) {
-            openSockets[0].write(data);
+            openSockets[0].write(data+"9BREAK9");
         }
     }
     
@@ -148,8 +153,12 @@ function startStreamViewerSocket(ip) {
 // On receiving data from the server
 function handleClientSocketData(data) {
     try {
-        data = JSON.parse(data.toString('utf8'));
-        mainWindow.webContents.send("RTCMessage", data);
+        var splitData = data.toString('utf8').split('9BREAK9');
+        splitData.pup();
+
+        splitData.forEach((d) => {
+            mainWindow.webContents.send("RTCMessage", JSON.parse(d));
+        });
     } catch(err) {
         console.log('Could not read server response.')
     }
