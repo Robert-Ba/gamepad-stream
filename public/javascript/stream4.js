@@ -19,10 +19,6 @@ $(document).ready(function() {
 
     // With simple-peer: this event could provide a webrtc offer OR ice candidate.
     viewerPeer.on('signal', function(data) {
-        if(data.candidate) {
-            data = data.candidate;
-        }
-
         ipcRenderer.send('WebRTCChannel', JSON.stringify(data));
     });
 
