@@ -56,15 +56,15 @@ function readStream(stream) {
 
     video.onloadedmetadata = () => {
         video.play();
-        broadcastingPeer = new Peer({initiator: false, stream: stream});
+        broadcastingPeer = new Peer({ initiator: false, stream: stream, trickle: true });
 
         broadcastingPeer.on('signal', function(data) {
-            ipcRenderer.send('WebRTCChannel', JSON.parse(data));
+            ipcRenderer.send('WebRTCChannel', data);
         });
     }
 }
 
-ipcRenderer.on("RTCMessage", function (event, message) {
+ipcRenderer.on("WebRTCChannel", function (event, message) {
     console.log('RTC message: ')
     console.log(message)
     broadcastingPeer.signal(message);

@@ -125,13 +125,13 @@ function startServer() {
     
             // Allow broadcaster to send RTC signals to client
             ipcMain.on('WebRTCChannel', function(event, data) {
-                socket.emit('WebRTCChannel', { from: 'server', data: data});
+                socket.emit('RTCSocketMessage', { from: 'server', data: data});
             });
     
             console.log('Viewer connected.');
             
-            socket.on('WebRTCChannel', function(data) {
-                mainWindow.webContents.send("RTCMessage", data.data);
+            socket.on('RTCSocketChannel', function(data) {
+                mainWindow.webContents.send("WebRTCChannel", data.data);
             });
 
             openSockets.push(socket);
