@@ -61,11 +61,6 @@ function createMainWindow(msg) {
     });
 }
 
-// When the server receives data on a socket
-function handleServerSocketData(data) {
-    mainWindow.webContents.send("RTCMessage", data);
-}
-
 function initStartEvents() {
     ipcMain.once('stream:start', function (e, windowId) {
         startStream(windowId);
@@ -126,16 +121,20 @@ function startServer() {
         // Only one open socket allowed
         if (openSockets.length === 0) {
     
-            socket.emit('ready', 'ready');
+            socket.emit('ready', { from: 'server', ready: 'ready'});
     
             // Allow broadcaster to send RTC signals to client
             ipcMain.on('WebRTCChannel', function(event, data) {
-                socket.emit(data);
+                socket.emit('WebRTCChannel', { from: 'server', data: data});
             });
     
             console.log('Viewer connected.');
+            
+            socket.on('WebRTCChannel', function(data) {
+                mainWindow.webContents.send("RTCMessage", data.data);
+            });
+
             openSockets.push(socket);
-            socket.on('WebRTCChannel', handleServerSocketData);
         } else {
             // Close connection?
         }
