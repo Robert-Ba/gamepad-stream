@@ -7,11 +7,6 @@ var broadcastingPeer = undefined;
 
 var activeStream = undefined;
 
-// Handle offers to connect.
-ipcRenderer.on("offer", function (event, offer) {
-    broadcastingPeer.signal(offer);
-});
-
 $(document).ready(function () {
     $('#stop-stream').click(stopStream);
 });
@@ -62,12 +57,14 @@ function readStream(stream) {
         broadcastingPeer = new Peer({initiator: false, stream: stream});
 
         broadcastingPeer.on('signal', function(data) {
-            ipcRenderer.send('WebRTCChannel', data);
+            ipcRenderer.send('WebRTCChannel', JSON.parse(data));
         });
     }
 }
 
-ipcRenderer.on("RTCMessage", function(event, message) {
+ipcRenderer.on("RTCMessage", function (event, message) {
+    console.log('RTC message: ')
+    console.log(message)
     broadcastingPeer.signal(message);
 });
 
