@@ -62,7 +62,7 @@ function readStream(stream) {
         broadcastingPeer = new Peer({initiator: false, stream: stream});
 
         broadcastingPeer.on('signal', function(data) {
-            ipcRenderer.send('WebRTCChannel', JSON.stringify(data));
+            ipcRenderer.send('WebRTCChannel', data);
         });
     }
 }
@@ -76,19 +76,6 @@ ipcRenderer.on("RTCMessage", function(event, message) {
 //     offerToReceiveVideo: false,
 //     offerToReceiveAudio: false
 // }
-
-function toBuffer(blob, cb) {
-    var reader = new FileReader()
-
-    function onLoadEnd(e) {
-        reader.removeEventListener('loadend', onLoadEnd, false)
-        if (e.error) cb(e.error)
-        else cb(null, Buffer.from(reader.result))
-    }
-
-    reader.addEventListener('loadend', onLoadEnd, false)
-    reader.readAsArrayBuffer(blob)
-}
 
 function handleError(e) {
     console.log(e)

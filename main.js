@@ -1,8 +1,6 @@
+const io = require('socket.io');
 const electron = require('electron');
-const url = require('url');
-const path = require('path');
-
-const net = require('net');
+var server = undefined;
 
 const { app, BrowserWindow, Menu, ipcMain, protocol } = electron;
 
@@ -10,28 +8,6 @@ let mainWindow;
 
 // Server socket connection:
 var openSockets = [];
-var offerReceived = false;
-
-// Client socket connection:
-var clientSocket = undefined;
-
-var server = net.createServer(function(socket) {
-    // Only one open socket allowed
-    if(openSockets.length === 0) {
-        openSockets.push(socket);
-        console.log('Viewer connected.')
-        socket.on('data', handleServerSocketData);
-
-        socket.on('end', function () {
-            console.log('Viewer disconnected')
-            //console.log(this)
-            // Change this if I decide to support multiple connections
-            openSockets = [];
-            if(clientSocket) clientSocket.removeListener('data');
-        });
-    }
-});
-server.maxConnections = 1;
 
 app.on('ready', function() {
     mainWindow = new BrowserWindow({
@@ -41,11 +17,16 @@ app.on('ready', function() {
     
     mainWindow.loadFile('./windows/views/startWindow.html');
     mainWindow.on('closed', function () {
-        if(clientSocket) {
-            clientSocket.end(); 
+        if(openSockets[0]) {
+            openSockets[0].disconnect(true);
+            openSockets.pop();
         }
 
-        server.close();
+        if(server) {
+            server.close(function () {
+                server = undefined;
+            });
+        }
     })
 
     const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
@@ -82,33 +63,8 @@ function createMainWindow(msg) {
 
 // When the server receives data on a socket
 function handleServerSocketData(data) {
-    console.log("New message")
-    try {
-        var splitData = data.toString('utf8').split('9BREAK9');
-        splitData.pop();
-
-        console.log(splitData);
-
-        splitData.forEach((d) => {
-            mainWindow.webContents.send("RTCMessage", JSON.parse(d));
-        });
-    } catch(err) {
-        console.log('Could not read client message.')
-    }
+    mainWindow.webContents.send("RTCMessage", data);
 }
-
-// This channel is used by the broadcast and stream viewer windows for anything related to WebRTC.
-ipcMain.on('WebRTCChannel', function(event, data) {
-    if(clientSocket) {
-        // I'm sorry for this...
-        clientSocket.write(data+"9BREAK9");
-    } else {
-        if(openSockets.length > 0) {
-            openSockets[0].write(data+"9BREAK9");
-        }
-    }
-    
-});
 
 function initStartEvents() {
     ipcMain.once('stream:start', function (e, windowId) {
@@ -121,50 +77,13 @@ function initStartEvents() {
 }
 
 // Join the stream hosted by the provided ip.
-// 1. Load stream viewer window
-// 2. Open socket.
-// 3. Receive offer object from window. Send offer when socket is ready.
+// The client page window will use ip to connect with socket.io
 function joinStream(ip) {
-    if (clientSocket) {
-        clientSocket.end();
-    }
-
-    
     createStreamViewerWindow();
     mainWindow.webContents.once("did-finish-load", function () {
-        startStreamViewerSocket(ip);
+        // Send ip for socket.io to establish
+        mainWindow.webContents.send('ip', ip);
     });
-}
-
-// Connect to the broadcast server running on the streamers pc
-function startStreamViewerSocket(ip) {
-    clientSocket = new net.Socket();
-    clientSocket.connect(4000, ip);
-
-    clientSocket.on('error', function (err) {
-        createMainWindow('Could not connect to ' + ip);
-    });
-
-    // As the stream viewer: receive answer to offer and/or ice candidate
-    clientSocket.on('data', handleClientSocketData);
-
-    clientSocket.on('end', function() {
-        clientSocket = undefined;
-    });
-}
-
-// On receiving data from the server
-function handleClientSocketData(data) {
-    try {
-        var splitData = data.toString('utf8').split('9BREAK9');
-        splitData.pop();
-
-        splitData.forEach((d) => {
-            mainWindow.webContents.send("RTCMessage", JSON.parse(d));
-        });
-    } catch(err) {
-        console.log('Could not read server response.')
-    }
 }
 
 // Open broadcast window, start server, and accept offers to for WebRTC
@@ -181,7 +100,6 @@ function startStream(windowId) {
 
 function initStreamViewerEvents() {
     ipcMain.once('stream:exit', function(e) {
-        clientSocket.end();
         createMainWindow();
     });
 }
@@ -202,13 +120,34 @@ function removeStartEvents() {
 
 function startServer() {
     console.log('Listening on port 4000');
-    server.listen(4000, '0.0.0.0');
+    server = io.listen(4000)
+
+    server.on("connection", function (socket) {
+        // Only one open socket allowed
+        if (openSockets.length === 0) {
+    
+            socket.emit('ready', 'ready');
+    
+            // Allow broadcaster to send RTC signals to client
+            ipcMain.on('WebRTCChannel', function(event, data) {
+                socket.emit(data);
+            });
+    
+            console.log('Viewer connected.');
+            openSockets.push(socket);
+            socket.on('WebRTCChannel', handleServerSocketData);
+        } else {
+            // Close connection?
+        }
+    });
 }
 
 function stopServer() {
     console.log('Closing server.')
-    openSockets.forEach((socket) => {socket.end()});
-    server.close();
+    openSockets.forEach((socket) => {socket.disconnect(true)});
+    server.close(function() {
+        server = undefined;
+    });
 }
 
 const mainMenuTemplate = [
