@@ -35,7 +35,9 @@ function startCapture(windowId) {
                             minWidth: 1280,
                             maxWidth: 1280,
                             minHeight: 720,
-                            maxHeight: 720
+                            maxHeight: 720,
+                            minFrameRate: 30,
+                            maxFrameRate: 30
                         }
                     }
                 }).then((stream) => readStream(stream))

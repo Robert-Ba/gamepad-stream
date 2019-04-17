@@ -32,9 +32,9 @@ ipcRenderer.on("ip", function(event, ip){
 });
 
 function startRTC() {
-    viewerPeer = new Peer({ initiator: true });
+    viewerPeer = new Peer({ initiator: true, trickle: true });
 
-    socket.on('RTCMessage', function(data) {
+    socket.on('RTCSocketMessage', function(data) {
         console.log('Received RTC message')
         viewerPeer.signal(data.data);
     });
@@ -42,7 +42,7 @@ function startRTC() {
     viewerPeer.on('signal', function(data) {
         console.log('Sending data')
         console.log(data)
-        socket.emit('WebRTCChannel', { from: 'client', data: data});
+        socket.emit('RTCSocketChannel', { from: 'client', data: data});
     });
 
     viewerPeer.on('stream', function(stream) {
