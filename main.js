@@ -129,7 +129,7 @@ function startServer() {
             socket.emit('ready', 'ready');
     
             // Allow broadcaster to send RTC signals to client
-            ipcMain.on('WebRTCChannel', function(event, data) {
+            ipcMain.on('WebRTCChannel', function(data) {
                 socket.emit(data);
             });
     
