@@ -29,8 +29,8 @@ function updateStatus() {
     var j;
 
     var inputValues = {
-        buttons: {},
-        axes: {}
+        buttons: [],
+        axes: []
     };
 
     for (j in controllers) {
@@ -40,19 +40,18 @@ function updateStatus() {
             var val = controller.buttons[i];
             var pressed = val == 1.0;
             if (typeof (val) == "object" && val.pressed) {
-                inputValues.buttons[i] = val.value;
+                inputValues.buttons.push(val.value);
                 console.log(i + ": " + val.value);
             } else {
-                inputValues.buttons[i] = val.value;
+                inputValues.buttons.push(val.value);
             }
         }
         
         for (i = 0; i < controller.axes.length; i++) {
-            inputValues.axes[i] = controller.axes[i];
+            inputValues.axes.push(controller.axes[i]);
             if (Math.abs(controller.axes[i]) > .1) {
                 console.log(i + " " + controller.axes[i])
             }
-            
         }
     }
 
@@ -63,6 +62,9 @@ function updateStatus() {
 function sendControllerInput(inputValues) {
     // TODO: Send controller input to TCP server.
 
+    // Testing:
+    //console.log(axesVisualTest)
+    displayControls(inputValues);
 }
 
 function scangamepads() {
@@ -79,8 +81,11 @@ function scangamepads() {
 }
 
 
-window.addEventListener("gamepadconnected", connecthandler);
-window.addEventListener("gamepaddisconnected", disconnecthandler);
+$(document).ready(() => {
+    window.addEventListener("gamepadconnected", connecthandler);
+    window.addEventListener("gamepaddisconnected", disconnecthandler);
+})
+
 
 if (!haveEvents) {
     setInterval(scangamepads, 500);

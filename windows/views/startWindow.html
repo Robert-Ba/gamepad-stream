@@ -9,40 +9,38 @@
         <link rel="stylesheet" type="text/css" href="../../public/styles/startWindow.css" />
     </head>
     <body>
-        <div class="main-menu-container">
-            <div class="menu-buttons-container">
-                <table class="menu-table">
-                    <tbody>
-                        <tr>
-                            <td>
-                                <form id="join-stream-form">
-                                    <div class="input-group">
-                                        <label>
-                                            <b>IP Address:</b>
-                                        </label>
-                                        <input type="text" id="ip" autofocus required />
-                                    </div>
-                                </form>
-                            </td>
-                            <td>
-                                <b>Select a window:</b>
-                                <form id="select-window-form">
-                                    <div id="window-option-list" class="input-group">
-                                    </div>
-                                </form>
-                            </td>
-                        </tr>
-                        <tr>
-                            <td>
-                                <button id="join-stream-button" type="submit" form="join-stream-form">Join stream</button>
-                            </td>
-                            <td>
-                                <button id="start-stream" type="submit" form="select-window-form">Start stream</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
+        <div class="menu-buttons-container">
+            <table class="menu-table">
+                <tbody>
+                    <tr>
+                        <td>
+                            <form id="join-stream-form">
+                                <div class="input-group">
+                                    <label>
+                                        <b>IP Address:</b>
+                                    </label>
+                                    <input type="text" id="ip" autofocus required />
+                                </div>
+                            </form>
+                        </td>
+                        <td>
+                            <b>Select a window:</b>
+                            <form id="select-window-form">
+                                <div id="window-option-list" class="input-group">
+                                </div>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>
+                            <button id="join-stream-button" type="submit" form="join-stream-form">Join stream</button>
+                        </td>
+                        <td>
+                            <button id="start-stream" type="submit" form="select-window-form">Start stream</button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
         
         <script>

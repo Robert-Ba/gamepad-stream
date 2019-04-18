@@ -3,21 +3,18 @@ body {
     margin: 0;
     min-height: 100vh;
     flex-direction: column;
-}
-
-.main-menu-container {
     background-color: ghostwhite;
-    flex: 1;
-    height: 100%;
 }
 
 .menu-buttons-container {
-    width: 550px;
     display: flex;
     justify-content: space-between;
-    margin-left: auto;
-    margin-right: auto;
-    padding-top: 230px;
+    width: 640px;
+    background: #FFFFFF;
+    padding: 1em;
+    margin: 1em auto;
+    border-top: 5px solid #3f7cfa;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.8);
 }
 
 .menu-buttons-container button {

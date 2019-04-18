@@ -1,0 +1,21 @@
+.axes {
+    justify-content: space-around;
+}
+
+.axes > div {
+    display: inline-block;
+    position: relative;
+    width: 100px;
+    height: 100px;
+    background-color: gray;
+}
+
+.dot {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 100%;
+    border: 2px solid black;
+    top: 45px;
+    left: 45px;
+}

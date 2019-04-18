@@ -2,17 +2,23 @@ const electron = require('electron');
 const { ipcRenderer, desktopCapturer } = electron;
 const Peer = require('simple-peer');
 
-// We are requesting to view the stream.
+// We are sending stream to viewers. 
 var broadcastingPeer = undefined;
 
 var activeStream = undefined;
+var axesVisualTest = [];
 
 $(document).ready(function () {
+    axesVisual = [document.getElementById('stick-one-visual'), document.getElementById('stick-two-visual')];
     $('#stop-stream').click(stopStream);
 });
 
 function stopStream(e) {
     e.preventDefault();
+
+    if (broadcastingPeer) {
+        broadcastingPeer.destroy();
+    }
     ipcRenderer.send('stream:stop');
 }
 
@@ -58,10 +64,56 @@ function readStream(stream) {
         video.play();
         broadcastingPeer = new Peer({ initiator: false, stream: stream, trickle: true });
 
+        // On signal: handle answer or candidates
         broadcastingPeer.on('signal', function(data) {
             ipcRenderer.send('WebRTCChannel', data);
         });
+
+        broadcastingPeer.on('connect', function () {
+            $('#connectedClient').text('Viewer is connected').addClass('connected-text');
+        });
+
+        broadcastingPeer.on('data', function () {
+            // Receive control input from data channel.
+            console.log(data)
+
+            if (data.type === 'gamepad') {
+                // TODO: Send controls to the virtual gamepad driver.
+                //sendControlsToDriver(data.inputValues);
+
+                // Display input in UI
+                displayControls(data.inputValues);
+            }
+        });
+
+        broadcastingPeer.on('error', function (err) {
+            $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
+            broadcastingPeer.destroy();
+            ipcRenderer.send('stream:disconnect');
+        });
+
+        broadcastingPeer.on('close', function (err) {
+            $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
+        });
     }
+}
+
+function displayControls(inputValues) {
+    axesVisual[0].style.left = normalizeAxisValue(inputValues.axes[0]) + "px";
+    axesVisual[0].style.top = normalizeAxisValue(inputValues.axes[1]) + "px";
+
+    axesVisual[1].style.left = normalizeAxisValue(inputValues.axes[2]) + "px";
+    axesVisual[1].style.top = normalizeAxisValue(inputValues.axes[3]) + "px";
+}
+
+function normalizeAxisValue(value) {
+    value = value < -1 ? -1 : (value > 1 ? 1 : value);
+    value = (((value + 1) / 2) * 100);
+    return value - 5;
+}
+
+function sendControlsToDriver(inputValues) {
+    // TODO
 }
 
 ipcRenderer.on("WebRTCChannel", function (event, message) {

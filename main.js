@@ -35,7 +35,7 @@ app.on('ready', function() {
     initStartEvents();    
 });
 
-// Open stream viewer
+// Open stream viewer window
 function createStreamViewerWindow() {
     mainWindow.loadFile('./windows/views/streamWindow.html');
     removeStartEvents();
@@ -107,6 +107,13 @@ function initBroadcastEvents() {
         stopServer();
         createMainWindow();
     });
+
+    ipcMain.on('stream:disconnect', function (e) {
+        //mainWindow.webContents.send('item:add', item);
+
+        // Close socket.
+        openSockets.forEach((socket) => { socket.disconnect(true) });
+    });
 }
 
 function removeStartEvents() {
@@ -115,7 +122,9 @@ function removeStartEvents() {
 
 function startServer() {
     console.log('Listening on port 4000');
-    server = io.listen(4000)
+    server = io.listen(4000);
+
+
 
     server.on("connection", function (socket) {
         // Only one open socket allowed
@@ -136,7 +145,8 @@ function startServer() {
 
             openSockets.push(socket);
         } else {
-            // Close connection?
+            // Disconnect socket
+            socket.disconnect(true);
         }
     });
 }

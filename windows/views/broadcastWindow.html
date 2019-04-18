@@ -5,15 +5,48 @@
     <script>
             if (typeof module === 'object') {window.module = module; module = undefined;}
     </script>
-    <script src="../../node_modules/jquery/dist/jquery.slim.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="../../node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <script src="../../public/javascript/broadcast.js"></script>
+    <script src="../../public/javascript/gamepad.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../../public/styles/broadcast.css" />
+    <link rel="stylesheet" type="text/css" href="../../public/styles/gamepadVisual.css" />
 </head>
 <body>
-    <p>Stream is active.</p>
-    <button id="stop-stream">Stop streaming</button>
-    <video width="320" height="240"></video>
-    <script type="text/javascript">
-       
-    </script>
+    <div class="content-wrapper">
+        <div class="video-container">
+            <video></video>
+        </div>
+        <div class="container">
+            <button id="stop-stream" class="btn btn-danger">Stop streaming</button>
+        </div>
+        <div class="information-container">
+            <div class="row">
+                <div class="streamer-info col-6">
+                    <h4>Local IP Address:</h4>
+                    <ul id="localIp"></ul>
+                    <h4>Public IP Address:</h4>
+                    <ul id="publicIp"></ul>
+                </div>
+                <div class="col-6">
+                    <div><b><span id="connectedClient" class="disconnect-text">No client connected</span></b></div>
+                    <div class="gamepad">
+                        <div class="axes row">
+                            <div id="stick-one">
+                                <div id="stick-one-visual" class="dot"></div>
+                            </div>
+                            <div id="stick-two">
+                                <div id="stick-two-visual" class="dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--<script src="../../public/javascript/ipUtil.js"></script>-->
 </body>
 </html>
