@@ -88,6 +88,7 @@ function readStream(stream) {
 
         broadcastingPeer.on('error', function (err) {
             $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
+            console.log(err)
             broadcastingPeer.destroy();
             ipcRenderer.send('stream:disconnect');
         });
