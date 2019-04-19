@@ -22,7 +22,7 @@ $(document).ready(function() {
 
 window.addEventListener("beforeunload", function(e) {
     if(viewerPeer) {
-        viewerPeer.send({type: "message", message: "end"});
+        viewerPeer.send(JSON.stringify({type: "message", message: "end"}));
         viewerPeer.destroy();
     }
 });
