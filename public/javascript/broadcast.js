@@ -84,11 +84,16 @@ function readStream(stream) {
                 // Display input in UI
                 displayControls(data.inputValues);
             }
+
+            if(data.type === 'message') {
+                if(data.message === 'end') {
+                    console.log('Viewer has left.')
+                }
+            }
         });
 
         broadcastingPeer.on('error', function (err) {
             $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
-            broadcastingPeer.destroy();
             ipcRenderer.send('stream:disconnect');
         });
 
