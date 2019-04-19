@@ -88,22 +88,28 @@ function readStream(stream) {
             if(data.type === 'message') {
                 if(data.message === 'end') {
                     console.log('Viewer has left.')
+                    resetStream();
                 }
             }
         });
 
         broadcastingPeer.on('error', function (err) {
             $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
-            console.log(err)
-            broadcastingPeer.destroy();
-            ipcRenderer.send('stream:disconnect');
+            console.log(err);
+            resetStream();
         });
 
         broadcastingPeer.on('close', function (err) {
-            ipcRenderer.send('stream:disconnect');
-            $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
+            broadcastingPeer.destroy();
+            resetStream();
         });
     }
+}
+
+function resetStream() {
+    readStream(activeStream);
+    ipcRenderer.send('stream:disconnect');
+    $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
 }
 
 function displayControls(inputValues) {
