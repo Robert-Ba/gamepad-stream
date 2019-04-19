@@ -60,11 +60,9 @@ function updateStatus() {
 }
 
 function sendControllerInput(inputValues) {
-    // TODO: Send controller input to TCP server.
-
-    // Testing:
-    //console.log(axesVisualTest)
-    displayControls(inputValues);
+    if (dataStream) {
+        dataStream(JSON.stringify({ type: 'gamepad', inputValues: inputValues }));
+    }
 }
 
 function scangamepads() {

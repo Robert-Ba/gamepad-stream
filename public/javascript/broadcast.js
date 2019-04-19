@@ -73,12 +73,12 @@ function readStream(stream) {
             $('#connectedClient').text('Viewer is connected').addClass('connected-text');
         });
 
-        broadcastingPeer.on('data', function () {
+        broadcastingPeer.on('data', function (data) {
             // Receive control input from data channel.
-            console.log(data)
+            data = JSON.parse(data);
 
             if (data.type === 'gamepad') {
-                // TODO: Send controls to the virtual gamepad driver.
+                // TODO:
                 //sendControlsToDriver(data.inputValues);
 
                 // Display input in UI
@@ -93,6 +93,7 @@ function readStream(stream) {
         });
 
         broadcastingPeer.on('close', function (err) {
+            ipcRenderer.send('stream:disconnect');
             $('#connectedClient').text('Viewer is disconnected').removeClass('connected-text');
         });
     }
@@ -120,6 +121,12 @@ ipcRenderer.on("WebRTCChannel", function (event, message) {
     console.log('RTC message: ')
     console.log(message)
     broadcastingPeer.signal(message);
+});
+
+ipcRenderer.on("ServerClosed", function (event) {
+    if (broadcastingPeer) {
+        broadcastingPeer.destroy();
+    }
 });
 
 // answerOptions: {

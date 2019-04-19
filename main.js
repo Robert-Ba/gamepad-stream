@@ -110,9 +110,10 @@ function initBroadcastEvents() {
 
     ipcMain.on('stream:disconnect', function (e) {
         //mainWindow.webContents.send('item:add', item);
-
+        console.log('disconnect socket');
         // Close socket.
         openSockets.forEach((socket) => { socket.disconnect(true) });
+        openSockets = [];
     });
 }
 
@@ -143,6 +144,11 @@ function startServer() {
                 mainWindow.webContents.send("WebRTCChannel", data.data);
             });
 
+            socket.on('disconnect', function () {
+                console.log('disconnect socket');
+                openSockets = [];
+            });
+
             openSockets.push(socket);
         } else {
             // Disconnect socket
@@ -157,6 +163,10 @@ function stopServer() {
     server.close(function() {
         server = undefined;
     });
+
+    if (mainWindow) {
+        mainWindow.webContents.send("ServerClosed");
+    } 
 }
 
 const mainMenuTemplate = [

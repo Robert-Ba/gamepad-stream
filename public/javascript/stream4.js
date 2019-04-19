@@ -14,6 +14,8 @@ var viewerPeer = undefined;
 var socket = undefined;
 var video = undefined;
 
+var dataStream = undefined;
+
 $(document).ready(function() {
     video = document.querySelector('video');
 });
@@ -28,6 +30,10 @@ ipcRenderer.on("ip", function(event, ip){
     socket.on('ready', function() {
         console.log('Received ready message')
         startRTC();
+    });
+
+    socket.on('disconnect', function () {
+        alert('Stream disconnected.')
     });
 });
 
@@ -51,6 +57,16 @@ function startRTC() {
     });
 
     viewerPeer.on('connect', function() {
-        // TODO: Send controls over datastream
+        dataStream = viewerPeer.send;
+    });
+
+    viewerPeer.on('close', function () {
+        dataStream = undefined;
+        viewerPeer.destroy();
+    });
+
+    viewerPeer.on('error', function () {
+        dataStream = undefined;
+        viewerPeer.destroy();
     });
 }
