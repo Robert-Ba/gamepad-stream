@@ -1,0 +1,60 @@
+body {
+    margin: 0px;
+    overflow: hidden;
+}
+
+.video-container {
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: 100vh;
+}
+
+video {
+    width: 100%;
+    height: 100%;
+    background-color: grey;
+}
+
+.menu-container {
+    left: 0px;
+    top: 0px;
+    width: 400px;
+    position: absolute;
+    border-radius: 8px;
+    background-color: rgba(50, 50, 50, 0.3);
+    margin: 10px;
+    padding: 5px 5px;
+    font-size: 20px;
+}
+
+.exit-button {
+    height: 35px;
+    font-size: 20px;
+    display: inline-block;
+    padding: 0px 7px;
+    background-color: transparent;
+    border: none;
+    color: white;
+}
+
+.exit-button:hover {
+    height: 35px;
+    font-size: 20px;
+    display: inline-block;
+    padding: 0px 7px;
+    background-color: transparent;
+    border: none;
+    color: #dddddd;
+}
+
+.button-divider {
+    width: 1px;
+    height: 35px;
+    display: inline-block;
+    font-size: 20px;
+    padding: 0px 7px;
+    background-color: transparent;
+    border-left: 3px solid gray;
+    vertical-align: bottom;
+}

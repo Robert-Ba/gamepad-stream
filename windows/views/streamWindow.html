@@ -10,10 +10,20 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.2.0/socket.io.js"></script>
     <script src="../../public/javascript/gamepad.js"></script>
     <script src="../../public/javascript/stream4.js"></script>
+
+    <link rel="stylesheet" type="text/css" href="../../public/styles/streamViewer.css" />
 </head>
 
 <body>
-    <video id="stream-video" style="background-color: grey; border: 2px solid black;" width="1280" height="720" muted="muted"></video>
+    <div class="video-container">
+        <video id="stream-video" muted="muted"></video>
+        <div class="menu-container">
+            <button class="exit-button">Disconnect</button>
+            <div class="button-divider"></div>
+        </div>
+        <!-- width="1280" height="720" -->
+    </div>
+    
 </body>
 
 </html>
