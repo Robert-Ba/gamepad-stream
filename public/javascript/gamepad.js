@@ -60,8 +60,8 @@ function updateStatus() {
 }
 
 function sendControllerInput(inputValues) {
-    if (dataStream) {
-        dataStream(JSON.stringify({ type: 'gamepad', inputValues: inputValues }));
+    if (viewerPeer) {
+        viewerPeer.send(JSON.stringify({ type: 'gamepad', inputValues: inputValues }));
     }
 }
 

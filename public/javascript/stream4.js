@@ -20,6 +20,13 @@ $(document).ready(function() {
     video = document.querySelector('video');
 });
 
+window.addEventListener("beforeunload", function(e) {
+    if(viewerPeer) {
+        viewerPeer.send({type: "message", message: "end"});
+        viewerPeer.destroy();
+    }
+});
+
 ipcRenderer.on("RTCMessage", function(event, message) {
     viewerPeer.signal(message);
 });
