@@ -6,7 +6,7 @@ const Peer = require('simple-peer');
 var broadcastingPeer = undefined;
 
 var activeStream = undefined;
-var axesVisualTest = [];
+var axesVisual = [];
 
 $(document).ready(function () {
     axesVisual = [document.getElementById('stick-one-visual'), document.getElementById('stick-two-visual')];
