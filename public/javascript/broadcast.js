@@ -2,14 +2,14 @@ const electron = require('electron');
 const { ipcRenderer, desktopCapturer } = electron;
 const Peer = require('simple-peer');
 
-// We are sending stream to viewers. 
+// We are sending stream to viewers.
 var broadcastingPeer = undefined;
 
 var activeStream = undefined;
 var axesVisual = [];
 
 var edge = require('electron-edge-js');
-var startController = edge.func('../../ViGEmControl.dll');
+var startController = edge.func('./ViGEmControl.dll');
 var updateController = undefined;
 
 $(document).ready(function () {
@@ -64,7 +64,7 @@ function startCapture(windowId) {
 
 function readStream(stream) {
     const video = document.querySelector('video');
-    
+
     video.srcObject = stream;
     activeStream = stream;
 
