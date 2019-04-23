@@ -8,9 +8,17 @@ var broadcastingPeer = undefined;
 var activeStream = undefined;
 var axesVisual = [];
 
+var edge = require('electron-edge-js');
+var startController = edge.func('../../ViGEmControl.dll');
+var updateController = undefined;
+
 $(document).ready(function () {
     axesVisual = [document.getElementById('stick-one-visual'), document.getElementById('stick-two-visual')];
     $('#stop-stream').click(stopStream);
+
+    startController(null, function (err, updt) {
+        updateController = updt;
+    });
 });
 
 function stopStream(e) {
@@ -78,8 +86,8 @@ function readStream(stream) {
             data = JSON.parse(data);
 
             if (data.type === 'gamepad') {
-                // TODO:
-                //sendControlsToDriver(data.inputValues);
+                // Only using left/right thumb sticks, triggers, A, B, X, Y
+                sendControlsToDriver(data.inputValues);
 
                 // Display input in UI
                 displayControls(data.inputValues);
@@ -121,18 +129,23 @@ function displayControls(inputValues) {
 }
 
 function normalizeAxisValue(value) {
-    value = value < -1 ? -1 : (value > 1 ? 1 : value);
-    value = (((value + 1) / 2) * 100);
-    return value - 5;
+    value = value < -1 ? -1.0 : (value > 1 ? 1.0 : value);
+    value = (((value + 1.0) / 2.0) * 100.0);
+    return value - 5.0;
 }
 
 function sendControlsToDriver(inputValues) {
-    // TODO
+    // TODO: Validate inputValues
+    var payload = {
+        buttons: [...inputValues.buttons],
+        triggers: [inputValues.buttons[6], inputValues.buttons[7]],
+        axes: [inputValues.axes[0], inputValues.axes[1], inputValues.axes[2], inputValues.axes[3],]
+    }
+
+    updateController(payload);
 }
 
 ipcRenderer.on("WebRTCChannel", function (event, message) {
-    console.log('RTC message: ')
-    console.log(message)
     broadcastingPeer.signal(message);
 });
 
