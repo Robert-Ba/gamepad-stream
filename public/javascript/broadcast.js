@@ -1,7 +1,7 @@
 const electron = require('electron');
 const { ipcRenderer, desktopCapturer } = electron;
 const Peer = require('simple-peer');
-const wrtc = require('wrtc');
+const wrtc = require('electron-webrtc');
 
 // We are sending stream to viewers.
 var broadcastingPeer = undefined;
