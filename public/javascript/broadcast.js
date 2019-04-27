@@ -1,6 +1,7 @@
 const electron = require('electron');
 const { ipcRenderer, desktopCapturer } = electron;
 const Peer = require('simple-peer');
+const wrtc = require('electron-webrtc');
 
 // We are sending stream to viewers.
 var broadcastingPeer = undefined;
@@ -50,8 +51,8 @@ function startCapture(windowId) {
                             maxWidth: 1280,
                             minHeight: 720,
                             maxHeight: 720,
-                            minFrameRate: 30,
-                            maxFrameRate: 30
+                            minFrameRate: 12,
+                            maxFrameRate: 12
                         }
                     }
                 }).then((stream) => readStream(stream))
@@ -70,7 +71,7 @@ function readStream(stream) {
 
     video.onloadedmetadata = () => {
         video.play();
-        broadcastingPeer = new Peer({ initiator: false, stream: stream, trickle: true });
+        broadcastingPeer = new Peer({ initiator: false, stream: stream, wrtc: wrtc });
 
         // On signal: handle answer or candidates
         broadcastingPeer.on('signal', function(data) {

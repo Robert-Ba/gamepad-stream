@@ -3,6 +3,7 @@
 const electron = require('electron');
 const { ipcRenderer } = electron;
 const Peer = require('simple-peer');
+const wrtc = require('electron-webrtc');
 
 // We are requesting to view the stream.
 var viewerPeer = undefined;
@@ -45,7 +46,7 @@ ipcRenderer.on("ip", function(event, ip){
 });
 
 function startRTC() {
-    viewerPeer = new Peer({ initiator: true, trickle: true });
+    viewerPeer = new Peer({ initiator: true, wrtc: wrtc });
 
     socket.on('RTCSocketMessage', function(data) {
         console.log('Received RTC message')
