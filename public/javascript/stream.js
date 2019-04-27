@@ -3,7 +3,7 @@
 const electron = require('electron');
 const { ipcRenderer } = electron;
 const Peer = require('simple-peer');
-const wrtc = require('electron-webrtc');
+const wrtc = require('wbrtc');
 
 // We are requesting to view the stream.
 var viewerPeer = undefined;
