@@ -28,6 +28,18 @@ video {
     font-size: 20px;
 }
 
+.side-console {
+    right: 0px;
+    top: 0px;
+    width: 400px;
+    height: 100vh;
+    position: absolute;
+    background-color: rgba(50, 50, 50, 0.3);
+    padding: 5px 5px;
+    display: none;
+    color: white;
+}
+
 .exit-button {
     height: 35px;
     font-size: 20px;
