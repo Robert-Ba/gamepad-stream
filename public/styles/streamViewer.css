@@ -38,6 +38,7 @@ video {
     padding: 5px 5px;
     display: none;
     color: white;
+    overflow-y: scroll;
 }
 
 .exit-button {

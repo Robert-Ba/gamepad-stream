@@ -17,19 +17,24 @@ var video = undefined;
 
 var dataStream = undefined;
 
-const receiverStatsDiv = document.getElementById('receiverStatsDiv');
-const bitrateDiv = document.getElementById('bitrateDiv');
-const peerDiv = document.getElementById('peerDiv');
-const receiverVideoStatsDiv = document.getElementById('receiverVideoStatsDiv');
+var receiverStatsDiv = undefined;
+var bitrateDiv = undefined;
+var peerDiv = undefined;
+var receiverVideoStatsDiv = undefined;
 
 $(document).ready(function() {
     video = document.querySelector('video');
 
     document.onkeydown = checkKey;
+
+        
+    receiverStatsDiv = document.getElementById('receiverStatsDiv');
+    bitrateDiv = document.getElementById('bitrateDiv');
+    peerDiv = document.getElementById('peerDiv');
+    receiverVideoStatsDiv = document.getElementById('receiverVideoStatsDiv');
 });
 
 function checkKey(e) {
-    console.log('key down')
     e = e || window.event;
 
     if (e.keyCode === 192) {
@@ -98,8 +103,13 @@ function startRTC() {
 
 // Display statistics
 setInterval(function () {
-    if (viewerPeer && viewerPeer.getRemoteStreams()[0]) {
-        viewerPeer.getStats(null, function (results) {
+    if (viewerPeer && viewerPeer._remoteStreams[0]) { // .getRemoteStreams
+        viewerPeer.getStats(function (err, results) {
+            if(err) {
+                console.log(err);
+                return;
+            }
+
             var statsString = dumpStats(results);
             receiverStatsDiv.innerHTML = '<h2>Receiver stats</h2>' + statsString;
             // calculate video bitrate
@@ -157,8 +167,6 @@ setInterval(function () {
                     remoteCandidate.ipAddress +
                     ':' + remoteCandidate.portNumber;
             }
-        }, function (err) {
-            console.log(err);
         });
     } else {
         console.log('Not connected yet');
