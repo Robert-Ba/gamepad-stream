@@ -9,7 +9,7 @@
   "author": "Robert",
   "license": "MIT",
   "dependencies": {
-    "electron": "^4.1.4",
+    "electron": "^13.6.6",
     "electron-edge-js": "^10.11.1",
     "electron-webrtc": "^0.3.0",
     "jquery": "^3.4.0",
